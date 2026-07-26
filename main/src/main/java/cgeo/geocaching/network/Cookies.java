@@ -120,18 +120,33 @@ public final class Cookies {
             int restoredCount = 0;
             if (oldCookies != null) {
                 for (final String cookie : StringUtils.split(oldCookies, ';')) {
-                    final String[] split = StringUtils.split(cookie, "=", 3);
-                    if (split.length == 3) {
+                    final int nameSeparator = cookie.indexOf('=');
+                    final int expiresAtSeparator = cookie.lastIndexOf('=');
+                    long expiresAt = Long.MAX_VALUE;
+                    String cookieWithoutExpiresAt = cookie;
+                    if (expiresAtSeparator > nameSeparator) {
                         try {
-                            final Cookie restoredCookie = new Builder().name(split[0]).value(split[1]).domain(split[2]).build();
+                            expiresAt = Long.parseLong(cookie.substring(expiresAtSeparator + 1));
+                            cookieWithoutExpiresAt = cookie.substring(0, expiresAtSeparator);
+                        } catch (final NumberFormatException ignored) {
+                            // Legacy cookie without expiresAt
+                        }
+                    }
+                    final int domainSeparator = cookieWithoutExpiresAt.lastIndexOf('=');
+                    if (nameSeparator > 0 && domainSeparator > nameSeparator) {
+                        final String name = cookieWithoutExpiresAt.substring(0, nameSeparator);
+                        final String value = cookieWithoutExpiresAt.substring(nameSeparator + 1, domainSeparator);
+                        final String domain = cookieWithoutExpiresAt.substring(domainSeparator + 1);
+                        try {
+                            final Cookie restoredCookie = new Builder().name(name).value(value).domain(domain).expiresAt(expiresAt).build();
                             addCookie(restoredCookie);
                             restoredCount++;
                             Log.d("HTTP-COOKIES: RESTORE META " + getCookieMetadata(restoredCookie));
                         } catch (final RuntimeException exception) {
-                            Log.w("HTTP-COOKIES: RESTORE failed for name=" + split[0] + ", domain=" + split[2] + ", exception=" + exception.getClass().getSimpleName());
+                            Log.w("HTTP-COOKIES: RESTORE failed for name=" + name + ", domain=" + domain + ", exception=" + exception.getClass().getSimpleName());
                         }
                     } else {
-                        Log.w("HTTP-COOKIES: RESTORE ignored malformed entry with fieldCount=" + split.length);
+                        Log.w("HTTP-COOKIES: RESTORE ignored malformed entry");
                     }
                 }
             }
@@ -156,6 +171,8 @@ public final class Cookies {
                 persistentCookies.append(cookie.value());
                 persistentCookies.append('=');
                 persistentCookies.append(cookie.domain());
+                persistentCookies.append('=');
+                persistentCookies.append(cookie.expiresAt());
                 persistentCookies.append(';');
             }
             Settings.setPersistentCookies(persistentCookies.toString());
