@@ -48,6 +48,26 @@ jobs:
 
           chmod 600 "$HOME/.android/debug.keystore"
 
+      - name: Apply c:geo CN branding
+        shell: bash
+        run: |
+          sed -i \
+            -e 's|@mipmap/ic_launcher_debug_round|@mipmap/ic_launcher_round|g' \
+            -e 's|@mipmap/ic_launcher_debug|@mipmap/ic_launcher|g' \
+            main/build.gradle
+
+          sed -i \
+            's|<string translatable="false" name="app_name">c:geo</string>|<string translatable="false" name="app_name">c:geo CN</string>|' \
+            main/src/main/res/values/strings_not_translatable.xml
+
+          if grep -q '@mipmap/ic_launcher_debug' main/build.gradle; then
+            echo "::error::Failed to replace the debug launcher icon"
+            exit 1
+          fi
+
+          grep -q '<string translatable="false" name="app_name">c:geo CN</string>' \
+            main/src/main/res/values/strings_not_translatable.xml
+
       - name: Build BasicDebug APK
         shell: bash
         run: |
