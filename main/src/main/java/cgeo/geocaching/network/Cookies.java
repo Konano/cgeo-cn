@@ -50,6 +50,7 @@ public final class Cookies {
                 needStoreUpdate |= addCookie(cookie);
                 if (doLogging) {
                     cookieLogString.append(";").append(cookie.name()).append("=").append(prepareCookieValueForLog(cookie.value()));
+                    Log.d("HTTP-COOKIES: SAVE META " + getCookieMetadata(cookie));
                 }
             }
             if (doLogging) {
@@ -63,6 +64,17 @@ public final class Cookies {
         private static String prepareCookieValueForLog(final String value) {
             return StringUtils.isBlank(value) || value.length() < 50 ? value : value.substring(0, 10) + "#" + value.length() + "#" + value.substring(value.length() - 3);
 
+        }
+
+        private static String getCookieMetadata(final Cookie cookie) {
+            return "name=" + cookie.name()
+                    + ", domain=" + cookie.domain()
+                    + ", path=" + cookie.path()
+                    + ", persistent=" + cookie.persistent()
+                    + ", expiresAt=" + cookie.expiresAt()
+                    + ", secure=" + cookie.secure()
+                    + ", httpOnly=" + cookie.httpOnly()
+                    + ", hostOnly=" + cookie.hostOnly();
         }
 
         private boolean addCookie(final Cookie cookie) {
@@ -104,26 +116,41 @@ public final class Cookies {
 
         private synchronized void restoreCookieStore() {
             final String oldCookies = Settings.getPersistentCookies();
+            Log.d("HTTP-COOKIES: RESTORE storedLength=" + (oldCookies == null ? -1 : oldCookies.length()));
+            int restoredCount = 0;
             if (oldCookies != null) {
                 for (final String cookie : StringUtils.split(oldCookies, ';')) {
                     final String[] split = StringUtils.split(cookie, "=", 3);
                     if (split.length == 3) {
                         try {
-                            addCookie(new Builder().name(split[0]).value(split[1]).domain(split[2]).build());
-                        } catch (final RuntimeException ignored) {
-                            // ignore
+                            final Cookie restoredCookie = new Builder().name(split[0]).value(split[1]).domain(split[2]).build();
+                            addCookie(restoredCookie);
+                            restoredCount++;
+                            Log.d("HTTP-COOKIES: RESTORE META " + getCookieMetadata(restoredCookie));
+                        } catch (final RuntimeException exception) {
+                            Log.w("HTTP-COOKIES: RESTORE failed for name=" + split[0] + ", domain=" + split[2] + ", exception=" + exception.getClass().getSimpleName());
                         }
+                    } else {
+                        Log.w("HTTP-COOKIES: RESTORE ignored malformed entry with fieldCount=" + split.length);
                     }
                 }
             }
+            Log.d("HTTP-COOKIES: RESTORE completed restoredCount=" + restoredCount + ", inMemoryCount=" + allCookies.size());
         }
 
         private void dumpCookieStore() {
             final StringBuilder persistentCookies = new StringBuilder();
+            final StringBuilder persistentCookieNames = new StringBuilder();
+            int persistentCookieCount = 0;
             for (final Cookie cookie : allCookies.values()) {
                 if (!cookie.persistent()) {
                     continue;
                 }
+                if (persistentCookieNames.length() > 0) {
+                    persistentCookieNames.append(',');
+                }
+                persistentCookieNames.append(cookie.name());
+                persistentCookieCount++;
                 persistentCookies.append(cookie.name());
                 persistentCookies.append('=');
                 persistentCookies.append(cookie.value());
@@ -132,6 +159,10 @@ public final class Cookies {
                 persistentCookies.append(';');
             }
             Settings.setPersistentCookies(persistentCookies.toString());
+            Log.d("HTTP-COOKIES: DUMP inMemoryCount=" + allCookies.size()
+                    + ", persistentCount=" + persistentCookieCount
+                    + ", names=[" + persistentCookieNames + "]"
+                    + ", storedLength=" + persistentCookies.length());
         }
     }
 
