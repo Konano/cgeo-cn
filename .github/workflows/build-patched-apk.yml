@@ -48,28 +48,44 @@ jobs:
 
           chmod 600 "$HOME/.android/debug.keystore"
 
-      - name: Apply c:geo CN branding
+      - name: Configure patched APK
         shell: bash
         run: |
           sed -i \
             -e 's|@mipmap/ic_launcher_debug_round|@mipmap/ic_launcher_round|g' \
             -e 's|@mipmap/ic_launcher_debug|@mipmap/ic_launcher|g' \
+            -e "s|date.format('yyyy.MM.dd')|date.format('yyyy.MM.dd.HH.mm.ss')|" \
+            -e '/\/\/ Leak Canary, memory leak detection/d' \
+            -e "/String leakCanaryVersion = /d" \
+            -e '/debugImplementation "com.squareup.leakcanary:leakcanary-android:/d' \
+            -e '/implementation "com.squareup.leakcanary:plumber-android:/d' \
             main/build.gradle
 
           sed -i \
             's|<string translatable="false" name="app_name">c:geo</string>|<string translatable="false" name="app_name">c:geo CN</string>|' \
             main/src/main/res/values/strings_not_translatable.xml
 
+          rm main/src/debug/java/cgeo/geocaching/utils/buildconfig/DebugBuildConfigHooks.java
+
           if grep -q '@mipmap/ic_launcher_debug' main/build.gradle; then
             echo "::error::Failed to replace the debug launcher icon"
             exit 1
           fi
 
+          if grep -qi 'leakcanary' main/build.gradle; then
+            echo "::error::Failed to remove LeakCanary dependencies"
+            exit 1
+          fi
+
+          grep -q "date.format('yyyy.MM.dd.HH.mm.ss')" main/build.gradle
+          grep -q 'versionNameSuffix = "-$commitIdShort developer build"' main/build.gradle
           grep -q '<string translatable="false" name="app_name">c:geo CN</string>' \
             main/src/main/res/values/strings_not_translatable.xml
 
       - name: Build BasicDebug APK
         shell: bash
+        env:
+          TZ: Asia/Shanghai
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon assembleBasicDebug
