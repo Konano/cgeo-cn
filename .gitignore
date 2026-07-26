@@ -1,3 +1,6 @@
+# private files
+cgeo-debug.keystore
+
 # generated code
 bin/
 gen/
