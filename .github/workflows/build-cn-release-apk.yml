@@ -50,7 +50,7 @@ jobs:
             -alias androiddebugkey \
             > /dev/null
 
-      - name: Configure c:geo CN release
+      - name: Configure c:geo CN release APK
         shell: bash
         run: |
           printf '%s\n' \

@@ -1,17 +1,13 @@
-name: Build patched cgeo APK
+name: Build c:geo CN debug APK
 
 on:
   workflow_dispatch:
-
-  # push:
-  #   branches:
-  #     - patches
 
 permissions:
   contents: read
 
 concurrency:
-  group: patched-cgeo-apk-${{ github.ref }}
+  group: cgeo-cn-debug-apk-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -48,12 +44,16 @@ jobs:
 
           chmod 600 "$HOME/.android/debug.keystore"
 
-      - name: Configure patched APK
+          keytool -list \
+            -keystore "$HOME/.android/debug.keystore" \
+            -storepass android \
+            -alias androiddebugkey \
+            > /dev/null
+
+      - name: Configure c:geo CN debug APK
         shell: bash
         run: |
           sed -i \
-            -e 's|@mipmap/ic_launcher_debug_round|@mipmap/ic_launcher_round|g' \
-            -e 's|@mipmap/ic_launcher_debug|@mipmap/ic_launcher|g' \
             -e "s|date.format('yyyy.MM.dd')|date.format('yyyy.MM.dd.HH.mm.ss')|" \
             -e '/\/\/ Leak Canary, memory leak detection/d' \
             -e "/String leakCanaryVersion = /d" \
@@ -66,11 +66,6 @@ jobs:
             main/src/main/res/values/strings_not_translatable.xml
 
           rm main/src/debug/java/cgeo/geocaching/utils/buildconfig/DebugBuildConfigHooks.java
-
-          if grep -q '@mipmap/ic_launcher_debug' main/build.gradle; then
-            echo "::error::Failed to replace the debug launcher icon"
-            exit 1
-          fi
 
           if grep -qi 'leakcanary' main/build.gradle; then
             echo "::error::Failed to remove LeakCanary dependencies"
@@ -93,7 +88,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
-          name: cgeo-patched-apk
+          name: cgeo-cn-debug-apk
           path: main/build/outputs/apk/basic/debug/*.apk
           if-no-files-found: error
           retention-days: 30
