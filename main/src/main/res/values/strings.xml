@@ -1452,6 +1452,12 @@
     <string name="map_source_google_map">Google: Map</string>
     <string name="map_source_google_satellite">Google: Satellite</string>
     <string name="map_source_google_terrain">Google: Terrain</string>
+    <string name="map_source_amap">Amap</string>
+    <string name="map_source_tencent">Tencent Maps</string>
+    <string name="map_source_esri_satellite">Esri Satellite</string>
+    <string name="map_attribution_amap">© Amap</string>
+    <string name="map_attribution_tencent">© Tencent Maps</string>
+    <string name="map_attribution_esri">© Esri</string>
     <string name="map_source_osm_offline_combined">Combined (Offline)</string>
     <string name="map_source_nomap">No map</string>
     <string name="map_source_attribution_dialog_title">Map Attributions</string>

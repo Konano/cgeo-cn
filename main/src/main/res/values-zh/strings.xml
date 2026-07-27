@@ -1238,6 +1238,12 @@
     <string name="map_source_google_map">谷歌地图：默认地图</string>
     <string name="map_source_google_satellite">谷歌地图：卫星地图</string>
     <string name="map_source_google_terrain">谷歌地图：地形</string>
+    <string name="map_source_amap">高德地图</string>
+    <string name="map_source_tencent">腾讯地图</string>
+    <string name="map_source_esri_satellite">Esri 卫星图</string>
+    <string name="map_attribution_amap">© 高德地图</string>
+    <string name="map_attribution_tencent">© 腾讯地图</string>
+    <string name="map_attribution_esri">© Esri</string>
     <string name="map_source_osm_offline_combined">合并(离线)</string>
     <string name="map_source_attribution_dialog_title">地图属性</string>
     <string name="init_sendToCgeo">发送至 c:geo</string>
