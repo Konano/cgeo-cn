@@ -10,6 +10,7 @@ import cgeo.geocaching.models.geoitem.GeoStyle;
 import cgeo.geocaching.models.geoitem.ToScreenProjector;
 import cgeo.geocaching.settings.Settings;
 import cgeo.geocaching.ui.ViewUtils;
+import cgeo.geocaching.unifiedmap.MapCoordinateConverter;
 import cgeo.geocaching.utils.ContextLogger;
 import cgeo.geocaching.utils.GroupedList;
 import cgeo.geocaching.utils.Log;
@@ -52,10 +53,7 @@ import org.oscim.utils.geom.GeomBuilder;
 
 public class MapsforgeVtmGeoItemLayer implements IProviderGeoItemLayer<Pair<Drawable, MarkerInterface>> {
 
-    private static final GeopointConverter<GeoPoint> GP_CONVERTER = new GeopointConverter<>(
-            gc -> new GeoPoint(gc.getLatitude(), gc.getLongitude()),
-            ll -> new Geopoint(ll.latitudeE6, ll.longitudeE6)
-    );
+    private final GeopointConverter<GeoPoint> geopointConverter;
 
     private Map map;
     private GroupedList<Layer> mapLayers;
@@ -123,8 +121,19 @@ public class MapsforgeVtmGeoItemLayer implements IProviderGeoItemLayer<Pair<Draw
     }
 
     public MapsforgeVtmGeoItemLayer(final Map map, final GroupedList<Layer> mapLayers) {
+        this(map, mapLayers, MapCoordinateConverter.IDENTITY);
+    }
+
+    public MapsforgeVtmGeoItemLayer(final Map map, final GroupedList<Layer> mapLayers, final MapCoordinateConverter coordinateConverter) {
         this.map = map;
         this.mapLayers = mapLayers;
+        geopointConverter = new GeopointConverter<>(
+                gc -> {
+                    final Geopoint mapPoint = coordinateConverter.toMap(gc);
+                    return new GeoPoint(mapPoint.getLatitude(), mapPoint.getLongitude());
+                },
+                ll -> coordinateConverter.fromMap(Geopoint.forE6(ll.latitudeE6, ll.longitudeE6))
+        );
     }
 
     @Override
@@ -204,7 +213,7 @@ public class MapsforgeVtmGeoItemLayer implements IProviderGeoItemLayer<Pair<Draw
             case MARKER:
                 break;
             case CIRCLE:
-                drawable = new CircleDrawable(GP_CONVERTER.to(item.getCenter()), item.getRadius(), style);
+                drawable = new CircleDrawable(geopointConverter.to(item.getCenter()), item.getRadius(), style);
                 break;
             case POLYGON:
                 //we have to construct our own GeomBuilder
@@ -220,7 +229,7 @@ public class MapsforgeVtmGeoItemLayer implements IProviderGeoItemLayer<Pair<Draw
                 break;
             case POLYLINE:
             default:
-                drawable = new LineDrawable(GP_CONVERTER.toList(item.getPoints()), style);
+                drawable = new LineDrawable(geopointConverter.toList(item.getPoints()), style);
                 break;
         }
 
@@ -234,7 +243,7 @@ public class MapsforgeVtmGeoItemLayer implements IProviderGeoItemLayer<Pair<Draw
         if (item.getIcon() != null) {
             final PopulateControlledItemizedLayer markerLayer = getMarkerLayer(zLevel, true);
             final GeoIcon icon = item.getIcon();
-            marker = new MarkerItem("", "", GP_CONVERTER.to(item.getCenter()));
+            marker = new MarkerItem("", "", geopointConverter.to(item.getCenter()));
             marker.setMarker(getMarkerSymbol(icon.getBitmap(), icon.getXAnchor(), icon.getYAnchor(), icon.isFlat()));
             marker.setRotation(item.getIcon().getRotation());
             markerLayer.addItemNoPopulate(marker);
@@ -245,9 +254,9 @@ public class MapsforgeVtmGeoItemLayer implements IProviderGeoItemLayer<Pair<Draw
         return new Pair<>(drawable, marker);
     }
 
-    private static void addRingToGeoBuilder(final GeomBuilder gb, final List<Geopoint> ring) {
+    private void addRingToGeoBuilder(final GeomBuilder gb, final List<Geopoint> ring) {
         for (Geopoint pt : ring) {
-            final GeoPoint gpt = GP_CONVERTER.to(pt);
+            final GeoPoint gpt = geopointConverter.to(pt);
             gb.point(gpt.getLongitude(), gpt.getLatitude());
         }
         gb.ring();
@@ -376,7 +385,7 @@ public class MapsforgeVtmGeoItemLayer implements IProviderGeoItemLayer<Pair<Draw
                   return null;
               }
               final Point pt = new Point();
-              map.viewport().toScreenPoint(GP_CONVERTER.to(gp), false, pt);
+              map.viewport().toScreenPoint(geopointConverter.to(gp), false, pt);
               return new int[]{(int) pt.x, (int) pt.y};
         };
     }

@@ -1,6 +1,7 @@
 package cgeo.geocaching.unifiedmap.tileproviders;
 
 import cgeo.geocaching.unifiedmap.AbstractMapFragment;
+import cgeo.geocaching.unifiedmap.MapCoordinateConverter;
 
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
@@ -87,6 +88,10 @@ public abstract class AbstractTileProvider {
     }
 
     public abstract AbstractMapFragment createMapFragment();
+
+    public MapCoordinateConverter getCoordinateConverter() {
+        return MapCoordinateConverter.IDENTITY;
+    }
 
 
     public int getZoomMin() {

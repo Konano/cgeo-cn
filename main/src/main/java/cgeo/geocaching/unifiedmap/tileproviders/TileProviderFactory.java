@@ -104,6 +104,7 @@ public class TileProviderFactory {
 
         // OSM online tile providers (Mapsforge)
         if (Settings.showMapsforgeInUnifiedMap()) {
+            registerTileProvider(new AmapSource());
             registerTileProvider(new OsmOrgSource());
             registerTileProvider(new OsmDeSource());
             registerTileProvider(new CyclosmSource());
@@ -116,6 +117,7 @@ public class TileProviderFactory {
 
         // OSM online tile providers (VTM)
         if (Settings.showVTMInUnifiedMap()) {
+            registerTileProvider(new AmapVTMSource());
             registerTileProvider(new OsmOrgVTMSource());
             registerTileProvider(new OsmDeVTMSource());
             registerTileProvider(new CyclosmVTMSource());

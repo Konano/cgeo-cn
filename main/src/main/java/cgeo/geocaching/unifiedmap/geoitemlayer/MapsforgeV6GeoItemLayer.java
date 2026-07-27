@@ -7,6 +7,7 @@ import cgeo.geocaching.models.geoitem.GeoPrimitive;
 import cgeo.geocaching.models.geoitem.GeoStyle;
 import cgeo.geocaching.models.geoitem.ToScreenProjector;
 import cgeo.geocaching.ui.ViewUtils;
+import cgeo.geocaching.unifiedmap.MapCoordinateConverter;
 import cgeo.geocaching.utils.CollectionStream;
 import cgeo.geocaching.utils.Log;
 
@@ -38,12 +39,18 @@ public class MapsforgeV6GeoItemLayer implements IProviderGeoItemLayer<int[]> {
     private MapView mapView;
     private LayerManager layerManager;
     private int defaultZLevel;
+    private final MapCoordinateConverter coordinateConverter;
 
     private MapsforgeV6ZLevelGroupLayer groupLayer;
 
     public MapsforgeV6GeoItemLayer(final MapView mapView) {
+        this(mapView, MapCoordinateConverter.IDENTITY);
+    }
+
+    public MapsforgeV6GeoItemLayer(final MapView mapView, final MapCoordinateConverter coordinateConverter) {
         this.mapView = mapView;
         this.layerManager = mapView.getLayerManager();
+        this.coordinateConverter = coordinateConverter;
     }
 
     @Override
@@ -101,16 +108,16 @@ public class MapsforgeV6GeoItemLayer implements IProviderGeoItemLayer<int[]> {
                 break;
             case POLYLINE:
                 final Polyline pl = new Polyline(strokePaint, AndroidGraphicFactory.INSTANCE);
-                pl.addPoints(CollectionStream.of(item.getPoints()).map(MapsforgeV6GeoItemLayer::latLong).toList());
+                pl.addPoints(CollectionStream.of(item.getPoints()).map(this::latLong).toList());
                 goLayer = pl;
                 break;
             case POLYGON:
             default:
                 final Polygon po = new Polygon(fillPaint, strokePaint, AndroidGraphicFactory.INSTANCE);
-                po.addPoints(CollectionStream.of(item.getPoints()).map(MapsforgeV6GeoItemLayer::latLong).toList());
+                po.addPoints(CollectionStream.of(item.getPoints()).map(this::latLong).toList());
                 if (item.getHoles() != null) {
                     for (List<Geopoint> hole : item.getHoles()) {
-                        po.addHole(CollectionStream.of(hole).map(MapsforgeV6GeoItemLayer::latLong).toList());
+                        po.addHole(CollectionStream.of(hole).map(this::latLong).toList());
                     }
                 }
                 goLayer = po;
@@ -144,7 +151,7 @@ public class MapsforgeV6GeoItemLayer implements IProviderGeoItemLayer<int[]> {
         return null;
     }
 
-    private static Marker createMarker(final Geopoint point, final GeoIcon icon) {
+    private Marker createMarker(final Geopoint point, final GeoIcon icon) {
         if (point == null || icon == null || icon.getBitmap() == null) {
             return null;
         }
@@ -168,8 +175,9 @@ public class MapsforgeV6GeoItemLayer implements IProviderGeoItemLayer<int[]> {
         return p;
     }
 
-    private static LatLong latLong(final Geopoint gp) {
-        return new LatLong(gp.getLatitude(), gp.getLongitude());
+    private LatLong latLong(final Geopoint gp) {
+        final Geopoint mapPoint = coordinateConverter.toMap(gp);
+        return new LatLong(mapPoint.getLatitude(), mapPoint.getLongitude());
     }
 
     @Override
