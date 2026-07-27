@@ -1,0 +1,51 @@
+name: Sync upstream release branch
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream-release
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fetch release branches
+        shell: bash
+        run: |
+          git fetch --no-tags origin \
+            refs/heads/release:refs/remotes/origin/release
+
+          git fetch --no-tags https://github.com/cgeo/cgeo.git \
+            refs/heads/release:refs/remotes/upstream/release
+
+      - name: Update release branch
+        shell: bash
+        run: |
+          current_release="$(git rev-parse refs/remotes/origin/release)"
+          upstream_release="$(git rev-parse refs/remotes/upstream/release)"
+
+          if [ "$current_release" = "$upstream_release" ]; then
+            echo "release is already up to date"
+            exit 0
+          fi
+
+          if ! git merge-base --is-ancestor \
+            "$current_release" "$upstream_release"; then
+            echo "::error::origin/release cannot be fast-forwarded to cgeo/cgeo:release"
+            exit 1
+          fi
+
+          git push origin \
+            refs/remotes/upstream/release:refs/heads/release
