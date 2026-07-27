@@ -91,6 +91,9 @@ class AbstractMapsforgeVTMOnlineTileProvider extends AbstractMapsforgeVTMTilePro
                 .zoomMax(zoomMax)
                 .zoomMin(zoomMin)
                 .build();
+        if (tilePath.contains("{-Y}")) {
+            tileSource.setUrlFormatter((source, tile) -> TilePathFormatter.format(tilePath, tile.tileX, tile.tileY, tile.zoomLevel));
+        }
         tileSource.setHttpEngine(new OkHttpEngine.OkHttpFactory(httpBuilder));
         tileSource.setHttpRequestHeaders(Collections.singletonMap("User-Agent", "cgeo-android"));
         return new BitmapTileLayer(map, tileSource);
