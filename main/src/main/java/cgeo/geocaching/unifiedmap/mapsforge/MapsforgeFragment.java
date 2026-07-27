@@ -367,7 +367,7 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
     public void zoomToBounds(final BoundingBox bounds) {
         if (bounds.getLatitudeSpan() == 0 && bounds.getLongitudeSpan() == 0) {
-            mMapView.setCenter(bounds.getCenterPoint());
+            mMapView.setCenter(new LatLong(bounds.getCenterPoint().getLatitude(), bounds.getCenterPoint().getLongitude()));
         } else {
             // add some margin to not cut-off items at the edge
             // Google Maps does this implicitly, so we need to add it here map-specific
