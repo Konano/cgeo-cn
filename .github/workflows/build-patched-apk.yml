@@ -62,7 +62,7 @@ jobs:
             main/build.gradle
 
           sed -i \
-            's|<string translatable="false" name="app_name">c:geo</string>|<string translatable="false" name="app_name">c:geo CN</string>|' \
+            's|<string translatable="false" name="app_name">c:geo</string>|<string translatable="false" name="app_name">c:geo debug</string>|' \
             main/src/main/res/values/strings_not_translatable.xml
 
           rm main/src/debug/java/cgeo/geocaching/utils/buildconfig/DebugBuildConfigHooks.java
@@ -79,7 +79,7 @@ jobs:
 
           grep -q "date.format('yyyy.MM.dd.HH.mm.ss')" main/build.gradle
           grep -q 'versionNameSuffix = "-$commitIdShort developer build"' main/build.gradle
-          grep -q '<string translatable="false" name="app_name">c:geo CN</string>' \
+          grep -q '<string translatable="false" name="app_name">c:geo debug</string>' \
             main/src/main/res/values/strings_not_translatable.xml
 
       - name: Build BasicDebug APK
