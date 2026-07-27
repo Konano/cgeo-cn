@@ -25,11 +25,20 @@ import org.oscim.tiling.source.bitmap.BitmapTileSource;
 class AbstractMapsforgeVTMOnlineTileProvider extends AbstractMapsforgeVTMTileProvider {
 
     private String tilePath;
+    private final String[] tileUrls;
 
     AbstractMapsforgeVTMOnlineTileProvider(final String name, final Uri uri, final String tilePath, final int zoomMin, final int zoomMax, final Pair<String, Boolean> mapAttribution) {
+        this(name, uri, tilePath, zoomMin, zoomMax, mapAttribution, new String[]{uri.toString()});
+    }
+
+    AbstractMapsforgeVTMOnlineTileProvider(final String name, final Uri uri, final String tilePath, final int zoomMin, final int zoomMax,
+                                           final Pair<String, Boolean> mapAttribution, final String[] tileUrls) {
         super(name, uri, zoomMin, zoomMax, mapAttribution);
         this.tilePath = tilePath;
+        this.tileUrls = tileUrls;
         // tilePath: "/cyclosm/{Z}/{X}/{Y}.png"
+        // Legacy no-op kept for now: VTM does not use this Mapsforge tile source.
+        // Actual tile requests are created by the BitmapTileSource in getBitmapTileLayer().
         new AbstractTileSource(new String[]{uri.getHost()}, 443) {
             @Override
             public int getParallelRequestsLimit() {
@@ -77,7 +86,7 @@ class AbstractMapsforgeVTMOnlineTileProvider extends AbstractMapsforgeVTMTilePro
         final Cache cache = new Cache(new File(LocalStorage.getExternalPrivateCgeoDirectory(), "tiles"), 20 * 1024 * 1024);
         httpBuilder.cache(cache);
         final BitmapTileSource tileSource = BitmapTileSource.builder()
-                .url(mapUri.toString())
+                .url(tileUrls)
                 .tilePath(tilePath)
                 .zoomMax(zoomMax)
                 .zoomMin(zoomMin)
