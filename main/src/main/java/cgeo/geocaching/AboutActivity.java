@@ -26,7 +26,6 @@ import static cgeo.geocaching.utils.BranchDetectionHelper.BUGFIX_VERSION_NAME;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.view.LayoutInflater;
@@ -151,19 +150,9 @@ public class AboutActivity extends TabbedViewPagerActivity {
 
         @Override
         public AboutVersionPageBinding createView(@NonNull final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-            final FragmentActivity activity = requireActivity();
             final AboutVersionPageBinding binding = AboutVersionPageBinding.inflate(inflater, container, false);
-            final SystemInformationViewModel viewModel = new ViewModelProvider(activity).get(SystemInformationViewModel.class);
-
-            viewModel.getSystemInformation().observe(getViewLifecycleOwner(), (si -> {
-                if (si != null) {
-                    setClickListener(binding.support, "mailto:support@cgeo.org?subject=" + Uri.encode("cgeo " + Version.getVersionName(activity)) +
-                            "&body=" + Uri.encode(si) + "\n");
-                    binding.support.setEnabled(true);
-                } else {
-                    binding.support.setEnabled(false);
-                }
-            }));
+            binding.support.setText(R.string.github_link);
+            setClickListener(binding.support, "https://github.com/Konano/cgeo-cn/issues");
 
             return binding;
         }
@@ -202,7 +191,7 @@ public class AboutActivity extends TabbedViewPagerActivity {
             setClickListener(binding.fangroup, "https://facebook.com/groups/cgeo.fangruppe");
             setClickListener(binding.nutshellmanual, LocalizationUtils.getPlainString(R.string.manual_link_full));
             setClickListener(binding.faq, LocalizationUtils.getPlainString(R.string.faq_link_full));
-            setClickListener(binding.github, "https://github.com/cgeo/cgeo/issues");
+            setClickListener(binding.github, "https://github.com/Konano/cgeo-cn/issues");
             binding.market.setOnClickListener(v -> ProcessUtils.openMarket(activity, activity.getPackageName()));
         }
     }

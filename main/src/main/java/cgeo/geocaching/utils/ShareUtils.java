@@ -73,8 +73,8 @@ public class ShareUtils {
     }
 
     private static void shareAsEmail(final Context context, final String subject, final String body, @Nullable final Uri uri, @StringRes final int titleResourceId, final String receiver) {
-        final String usedReceiver = receiver == null ? LocalizationUtils.getPlainString(R.string.support_mail) : receiver;
-        final Intent intent = createShareIntentInternal(context, TYPE_EMAIL, subject, body, uri, usedReceiver);
+        // CN feedback uses GitHub; email recipients are chosen by the user.
+        final Intent intent = createShareIntentInternal(context, TYPE_EMAIL, subject, body, uri, receiver);
         shareInternal(context, intent, titleResourceId);
     }
 
