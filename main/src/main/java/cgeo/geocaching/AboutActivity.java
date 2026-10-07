@@ -227,6 +227,8 @@ public class AboutActivity extends TabbedViewPagerActivity {
             }
             binding.getRoot().setVisibility(View.VISIBLE);
             final Markwon markwon = MarkdownUtils.create(activity);
+            // CN history uses explicit links; do not apply upstream issue-number rewriting.
+            markwon.setMarkdown(binding.changelogCn, FileUtils.getRawResourceAsString(activity, R.raw.changelog_cn));
 
             final String changelogBase = FileUtils.getChangelogMaster(activity).trim();
             final String changelogBugfix = prepareChangelogBugfix(activity);

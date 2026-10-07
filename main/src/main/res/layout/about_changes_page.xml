@@ -13,6 +13,11 @@
         android:orientation="vertical" >
 
         <TextView
+            android:id="@+id/changelog_cn"
+            style="@style/about_changes"
+            android:paddingBottom="20dip" />
+
+        <TextView
             android:id="@+id/changelog_betaupdate"
             style="@style/about_changes"
             android:paddingBottom="20dip"
