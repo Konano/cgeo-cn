@@ -220,6 +220,7 @@
     <string translatable="false" name="support_mail"><a href="">support@cgeo.org</a></string>
     <string translatable="false" name="manual_link"><a href="">manual.cgeo.org</a></string>
     <string translatable="false" name="github_link"><a href="">github.com/Konano/cgeo-cn/issues</a></string>
+    <string translatable="false" name="cn_download_link"><a href="">c:geo CN (APK)</a></string>
     <string translatable="false" name="faq_link_full">https://faq.cgeo.org</string>
     <string translatable="false" name="manual_link_full">https://manual.cgeo.org</string>
     <string translatable="false" name="changelog_full">https://github.com/cgeo/cgeo/blob/master/main/src/main/res/raw/changelog_full.md</string>

@@ -19,7 +19,6 @@ import cgeo.geocaching.utils.DebugUtils;
 import cgeo.geocaching.utils.FileUtils;
 import cgeo.geocaching.utils.LocalizationUtils;
 import cgeo.geocaching.utils.MarkdownUtils;
-import cgeo.geocaching.utils.ProcessUtils;
 import cgeo.geocaching.utils.ShareUtils;
 import cgeo.geocaching.utils.Version;
 import static cgeo.geocaching.utils.BranchDetectionHelper.BUGFIX_VERSION_NAME;
@@ -192,7 +191,7 @@ public class AboutActivity extends TabbedViewPagerActivity {
             setClickListener(binding.nutshellmanual, LocalizationUtils.getPlainString(R.string.manual_link_full));
             setClickListener(binding.faq, LocalizationUtils.getPlainString(R.string.faq_link_full));
             setClickListener(binding.github, "https://github.com/Konano/cgeo-cn/issues");
-            binding.market.setOnClickListener(v -> ProcessUtils.openMarket(activity, activity.getPackageName()));
+            setClickListener(binding.market, "https://nanoweb.oss-cn-beijing.aliyuncs.com/geocaching/cgeo_cn/cgeo-cn-release.apk");
         }
     }
 
