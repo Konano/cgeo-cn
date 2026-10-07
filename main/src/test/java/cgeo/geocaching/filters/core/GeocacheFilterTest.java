@@ -103,6 +103,31 @@ public class GeocacheFilterTest {
         assertThat(caches).containsExactly(g1, g2);
     }
 
+    @Test
+    public void andChainKeepsTypedAlwaysTrueResult() {
+        final GeocacheFilter filter = GeocacheFilter.create(false, false, and(
+                GeocacheFilterType.TYPE.create(),
+                GeocacheFilterType.DIFFICULTY_TERRAIN.create(),
+                GeocacheFilterType.STATUS.create()));
+
+        final List<BaseGeocacheFilter> chain = filter.getAndChainIfPossible(null);
+
+        assertThat(chain).containsExactly(ConstantGeocacheFilter.ALWAYS_TRUE);
+        assertThat(chain.get(0).getType()).isEqualTo(GeocacheFilterType.CONSTANT_FILTER);
+        assertThat(GeocacheFilter.blocksEverything(chain)).isFalse();
+    }
+
+    @Test
+    public void andChainPreservesBlockingResult() {
+        final GeocacheFilter filter = GeocacheFilter.create(false, false, ConstantGeocacheFilter.ALWAYS_FALSE);
+
+        final List<BaseGeocacheFilter> chain = filter.getAndChainIfPossible(null);
+
+        assertThat(chain).containsExactly(ConstantGeocacheFilter.ALWAYS_FALSE);
+        assertThat(chain.get(0).getType()).isEqualTo(GeocacheFilterType.CONSTANT_FILTER);
+        assertThat(GeocacheFilter.blocksEverything(chain)).isTrue();
+    }
+
     // =====================================================================
     // BaseGeocacheFilter.simplify
     // =====================================================================

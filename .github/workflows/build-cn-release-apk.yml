@@ -94,8 +94,8 @@ jobs:
           metadata_file="main/build/outputs/apk/basic/release/output-metadata.json"
 
           grep -q '"applicationId": "cgeo.geocaching.cn"' "$metadata_file"
-          grep -Eq '"versionCode": [0-9]{8}' "$metadata_file"
-          grep -Eq '"versionName": "[0-9]{4}\.[0-9]{2}\.[0-9]{2}"' "$metadata_file"
+          grep -Eq '"versionCode": [0-9]{9}([,[:space:]]|$)' "$metadata_file"
+          grep -Eq '"versionName": "[0-9]{4}\.[0-9]{2}\.[0-9]{2}"([,[:space:]]|$)' "$metadata_file"
 
       - name: Upload APK
         uses: actions/upload-artifact@v7
