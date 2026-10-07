@@ -1,20 +1,3 @@
-### Ogólne informacje o wydaniu
-
-**Od krawędzi do krawędzi**
-
-Ze względu na zasady sklepu Google Play zaktualizowaliśmy poziom API systemu Android w tej wersji c:geo oraz zmieniliśmy niektóre procedury układu ekranu. Mogą pojawić się pewne niepożądane efekty uboczne, zwłaszcza na nowszych wersjach Androida. Jeśli napotkasz jakiekolwiek problemy z tą wersją c:geo, prosimy o zgłoszenie na [GitHub](https://github.com/cgeo/cgeo) lub poprzez e-mail [support@cgeo.org](mailto:support@cgeo.org)
-
-**Starsze mapy**
-
-Jak zapowiedziano w wydaniach 2025.07.17 i 2025.12.01, usunęliśmy wreszcie stare wersje naszych map. Zostaniesz automatycznie przełączony na naszą nową mapę UnifiedMap i nie powinieneś zauważyć większych różnic poza kilkoma nowymi funkcjami, z których są
-- Obracanie mapy dla map opartych na OpenStreetMap (online i offline)
-- Wyskakujące okienko klastra dla Google Maps
-- Ukrywanie źródeł map, których nie potrzebujesz
-- Wykres wysokości tras i ścieżek
-- Przełączanie pomiędzy listami bezpośrednio z mapy
-- „Tryb jazdy” dla map opartych na OpenStreetMap
-- Długie dotknięcie na śladzie / indywidualnej trasa daje dostęp do dalszych opcji
-
 ### Mapa
 - Nowość: Optymalizacja trasy buforuje obliczone dane
 - Nowość: Włączenie trybu na żywo utrzymuje punkty orientacyjne aktualnie ustawionego celu
@@ -34,6 +17,19 @@ Jak zapowiedziano w wydaniach 2025.07.17 i 2025.12.01, usunęliśmy wreszcie sta
 - Naprawiono: W pewnych sytuacjach pobierania kafelków zatrzymywało się (tylko mapy online OpenStreetMap)
 - Nowość: Warunkowe znaczniki skrytki
 - Nowość: Pokaż wskazówkę nawigacji (strzałka + odległość)
+- Zmiana: Zmniejszenie wymagania pamięci dla aktywności mapy
+- Naprawiono: Mapa Google resetuje pozycję do N0 / W0 na mapowaniu listy skrytek
+
+**Starsze mapy**
+
+Jak zapowiedziano w wydaniach 2025.07.17 i 2025.12.01, usunęliśmy wreszcie stare wersje naszych map. Zostaniesz automatycznie przełączony na naszą nową mapę UnifiedMap i nie powinieneś zauważyć większych różnic poza kilkoma nowymi funkcjami, z których są
+- Obracanie mapy dla map opartych na OpenStreetMap (online i offline)
+- Wyskakujące okienko klastra dla Google Maps
+- Ukrywanie źródeł map, których nie potrzebujesz
+- Wykres wysokości tras i ścieżek
+- Przełączanie pomiędzy listami bezpośrednio z mapy
+- „Tryb jazdy” dla map opartych na OpenStreetMap
+- Długie dotknięcie na śladzie / indywidualnej trasa daje dostęp do dalszych opcji
 
 ### Szczegóły skrytki
 - Nowość: Wykrywaj dodatkowe znaki w formułach: –, ⋅, ×
@@ -62,12 +58,16 @@ Jak zapowiedziano w wydaniach 2025.07.17 i 2025.12.01, usunęliśmy wreszcie sta
 - Naprawiono: Awaria przy wczytywaniu obrazów osadzonych bezpośrednio w opisie skrytki
 - Nowość: Pokaż własne ulubione w widoku dziennika (Geocaching.com + dzienniki offline)
 - Nowość: Wysyłanie wpisu jest wykonywane w tle
+- Naprawiono: W niektórych sytuacjach inwentarz był ukryty podczas dodawania wpisu
+- Nowość: Uśrednianie współrzędnych przy tworzeniu punktu trasy / ustawieniu współrzędnych dla skrytek zdefiniowanych przez użytkownika
+- Naprawiono: Opis nie ładował się (zmiana strony internetowej)
 
 ### Odtwarzacz Wherigo
 - Nowość: Tłumaczenie offline dla Wherigo
 - Nowość: Ulepszona obsługa przycisku
 - Nowość: Automatyczne zapisywanie statusu
 - Nowość: Opcja tworzenia skrótu do odtwarzacza Wherigo na ekranie głównym Twojego telefonu
+- Naprawiono: Brakujące/niepoprawne pliki multimedialne powodowały błąd
 
 ### Ogólne
 - Nowość: Opcja udostępniania po dokonaniu wpisu w dzienniku skrytki
@@ -99,3 +99,7 @@ Jak zapowiedziano w wydaniach 2025.07.17 i 2025.12.01, usunęliśmy wreszcie sta
 - Naprawiono: Opcja „Używaj angielskich jednostek miary” na świeżych instalacjach nie była poprawnie inicjowana
 - Zmiana: Moduł tłumaczenia offline Bergamot (open source) zastępuje Google ML Kit (closed-source)
 - Zmiana: Nowy selektor emoji
+
+**Od krawędzi do krawędzi**
+
+Ze względu na zasady sklepu Google Play zaktualizowaliśmy poziom API systemu Android w tej wersji c:geo oraz zmieniliśmy niektóre procedury układu ekranu. Mogą pojawić się pewne niepożądane efekty uboczne, zwłaszcza na nowszych wersjach Androida. Jeśli napotkasz jakiekolwiek problemy z tą wersją c:geo, prosimy o zgłoszenie na [GitHub](https://github.com/cgeo/cgeo) lub poprzez e-mail [support@cgeo.org](mailto:support@cgeo.org)

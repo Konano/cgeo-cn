@@ -566,8 +566,6 @@
     <string name="list_dialog_rename_title">Uudelleennimeä luettelo</string>
     <string name="list_dialog_rename">Nimeä uudelleen</string>
     <string name="list_not_available">Luettelo ei ole enää saatavilla, vaihdetaan oletusluetteloon</string>
-    <string name="list_parent_list">Pääluettelo</string>
-    <string name="list_create_parent">&lt;Luo uusi ylälista&gt;</string>
     <string name="list_name">Listan nimi</string>
     <string name="list_confirm_rename">Uudelleennimetään \"%1$s\". Uusi nimi: \"%2$s\"\n%3$s\nTätä toimintoa ei voi peruuttaa!</string>
     <string name="list_confirm_no_hierarchy">\n\":\" ei löytynyt - kaikki vastaavat listat muutetaan ylimmän tason listoiksi\n</string>
@@ -745,6 +743,8 @@
         <item>&gt;1kk</item>
     </string-array>
     <!-- named filter activity -->
+    <!-- dialog to create element with parent -->
+    <string name="dialog_name">Nimi</string>
     <!-- about -->
     <string name="about_version">Versio</string>
     <string name="about_changelog">Muutoshistoria</string>
@@ -1125,7 +1125,6 @@
     <string name="settings_info_themes_title">Tietoa karttojen teemoista</string>
     <string name="settings_info_themes">c:geo tukee mukautettuja teemoja offline-karttoille. Näitä voidaan käyttää muuttamaan kartan väriä (esim. yönäkymäkartta) tai korostaa tiettyjä asioita kartalla, kuten pyöräilyreittejä tai korkeuslinjoja.\n\nPurettujen karttateemojen kanssa työskentely voi hidastaa karttojen prosessointia. Tässä tapauksessa teemakansio voidaan vaihtoehtoisesti synkronoida sovelluksen yksityiseen kansioon nopeamman pääsyn takaamiseksi (jonkin verran tallennustilaa käyttäen).</string>
     <string name="settings_info_hillshading_title">Tietoa rinnevarjostuksesta</string>
-    <string name="settings_info_hillshading">Rinnevarjostus on topograafisten kohokarttojen luomiseen käytetty tekniikka, joka lisää valoefektin kartoille, näyttäen korkeuden muutoksen. Rinteet vaalennetaan/tummennetaan, luoden 3D-efektin\nRinnevarjostustiedot voidaan ladata karttavalikosta.\nEi yhteensopiva UnifiedMap VTM -variantin kanssa.</string>
     <string name="settings_hillshading_enable">Rinnevarjostus</string>
     <string name="init_hillshading_hq">Korkealaatuinen rinnevarjostus</string>
     <string name="init_summary_hillshading_hq">Tarkempi rinnevarjostus, mutta ~50%% hitaampi renderöinti ulos loitontaessa</string>
@@ -2771,6 +2770,8 @@
     <string name="delete">Poista</string>
     <string name="play">Toista</string>
     <string name="copy" tools:ignore="PrivateResource">Kopioi</string>
+    <string name="pause">Keskeytä</string>
+    <string name="resume">Jatka</string>
     <!-- Multi-Selections -->
     <string name="multiselect_selectall">Valitse kaikki</string>
     <string name="multiselect_selectvisible">Valitse näkyvät</string>

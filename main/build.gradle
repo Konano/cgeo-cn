@@ -45,7 +45,7 @@ android {
 
     defaultConfig {
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
 
         versionName = versionNameFromDate()
         versionCode = versionCodeFromDate(0)
@@ -307,11 +307,13 @@ androidComponentsExt.onVariants(androidComponentsExt.selector().all()) { variant
         String currentFileName = output.outputFileName.get()
         output.outputFileName.set(currentFileName.replace("-basic-", "-"))
 
-        // special version code for nightly, rc and legacy builds
+        // special version code for nightly, rc, release and legacy builds
         if (variant.buildType == 'nightly') {
-            output.versionCode.set(versionCodeFromDate(10000000))
+            output.versionCode.set(versionCodeFromDate(100009)) // year+1, and "9" suffix
         } else if (variant.buildType == 'rc') {
-            output.versionCode.set(versionCodeFromDate(-1))
+            output.versionCode.set(versionCodeFromDate(versionCodeDigit('RC_VERSIONCODE_DIGIT', 0)))
+        } else if (variant.buildType == 'release') {
+            output.versionCode.set(versionCodeFromDate(versionCodeDigit('RELEASE_VERSIONCODE_DIGIT', 2)))
         } else if (variant.buildType == 'legacy') {
             String legacyName = System.getenv('LEGACY_VERSION_NAME')
             Integer legacyVersion = System.getenv('LEGACY_VERSION_CODE') as Integer
@@ -341,7 +343,7 @@ dependencies {
     // from cgeo/offline-translator's GitHub Release. Resolved via the ivy
     // repository declared in the root build.gradle. Replaces the formerly
     // checked-in jniLibs/*.so and dev/davidv/bergamot/*.java.
-    implementation 'cgeo:bergamot-sys:v0.2.6-cgeo.1@aar'
+    implementation 'cgeo:bergamot-sys:v0.2.6-cgeo.3@aar'
 
     // Apache Commons
     implementation 'org.apache.commons:commons-collections4:4.5.0'
@@ -483,11 +485,11 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxjava:3.1.12'
     implementation "io.reactivex.rxjava3:rxandroid:3.0.2"
 
-    // avoid duplicate class, see e.g. https://stackoverflow.com/questions/75712899/duplicate-class-kotlin-random-jdk8-found-in-modules-jetified-kotlin-stdlib-1-8-1
-    constraints {
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.3.0") {
-            because 'align all versions of kotlin transitive dependencies'
-        }
+    // avoid duplicate classes
+    configurations.configureEach {
+        resolutionStrategy.force 'org.jetbrains.kotlin:kotlin-stdlib:2.2.10'
+        resolutionStrategy.force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.10'
+        resolutionStrategy.force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.10'
     }
 
     // Support Library Lifecycle Helpers
@@ -560,7 +562,7 @@ dependencies {
 
     // charting, based on com.github.PhilJay:MPAndroidChart
     // for detailed docs for the base library see https://weeklycoding.com/mpandroidchart/
-    implementation 'com.github.AppDevNext.AndroidChart:chartLib:5.2.3'
+    implementation 'com.github.AppDevNext.AndroidChart:chartLib:5.2.1'
 
     // For Wherigos: GIF support
     // ani gif support
@@ -631,11 +633,26 @@ tasks.register('verifyCgeoKeys') {
     }
 }
 
-// version number from the current date, plus an offset defined by the build type (to define which versions overwrite each other)
-static int versionCodeFromDate(offset) {
+// version number = current date (YYYYMMDD) * 10 + a per-build-type last digit
+// that defines which builds supersede each other on a device (higher digit wins on the same day)
+static int versionCodeFromDate(int lastDigit) {
     Date date = new Date()
     String formattedDate = date.format('yyyyMMdd')
-    return Integer.valueOf(formattedDate) + offset
+    return Integer.valueOf(formattedDate) * 10 + lastDigit
+}
+
+// read the configurable last digit of the version code from an environment variable (set via the Jenkins UI),
+// falling back to the given default. Must be a single digit 0-9 so it does not shift the date part.
+static int versionCodeDigit(String envName, int defaultDigit) {
+    String raw = System.getenv(envName)
+    if (raw == null || raw.trim().isEmpty()) {
+        return defaultDigit
+    }
+    int digit = raw.trim() as Integer
+    if (digit < 0 || digit > 9) {
+        throw new InvalidUserDataException("$envName must be a single digit 0-9, was: $raw")
+    }
+    return digit
 }
 
 // version name based on current date

@@ -1,20 +1,3 @@
-### Notes générales de publication
-
-**Bord à bord**
-
-En raison des politiques du Play Store, nous avons mis à jour le niveau de l'API Android cette version de c:geo cibles + nous avons modifié certaines routines de mise en page de l'écran. Cela peut provoquer avec quelques effets secondaires indésirables, en particulier sur les nouvelles versions d'Android. Si vous rencontrez des problèmes avec cette version de c:geo, veuillez signaler soit sur [GitHub](https://github.com/cgeo/cgeo) ou par e-mail à [support@cgeo.org](mailto:support@cgeo.org)
-
-**Anciennes cartes**
-
-Comme annoncé avec les versions 2025.07.17 et 2025.12.01, nous avons finalement supprimé les implémentations héritées de nos cartes. Vous passerez automatiquement à notre nouvelle UnifiedMap et ne remarquerez aucune différence, sauf quelques nouvelles fonctionnalités, dont certaines sont
-- Rotation de la carte pour les cartes basées sur OpenStreetMap (en ligne et hors ligne)
-- Pop-up de cluster pour Google Maps
-- Cacher les sources de carte dont vous n'avez pas besoin
-- Graphique d'altitude pour les routes et les pistes
-- Basculer entre les listes directement depuis la carte
-- Mode "Conduite" pour les cartes basées sur OpenStreetMap
-- Appui long sur la piste / route individuelle pour plus d'options
-
 ### Carte
 - Nouveau: L'optimisation des itinéraires met en cache les données calculées
 - Nouveau : L'activation du mode live garde les waypoints de la cible actuellement définie visibles
@@ -34,6 +17,19 @@ Comme annoncé avec les versions 2025.07.17 et 2025.12.01, nous avons finalement
 - Correction : Arrêt du téléchargeur de tuiles dans certaines conditions (cartes en ligne OpenStreetMap uniquement)
 - Nouveau : marqueurs de cache conditionnels
 - New: Show navigation hint (arrow + distance)
+- Changement: Réduire les besoins en mémoire de l'activité de la carte
+- Correction : Google Map réinitialise la position à N0 / W0 lors du mapping d'une liste de caches
+
+**Anciennes cartes**
+
+Comme annoncé avec les versions 2025.07.17 et 2025.12.01, nous avons finalement supprimé les implémentations héritées de nos cartes. Vous passerez automatiquement à notre nouvelle UnifiedMap et ne remarquerez aucune différence, sauf quelques nouvelles fonctionnalités, dont certaines sont
+- Rotation de la carte pour les cartes basées sur OpenStreetMap (en ligne et hors ligne)
+- Pop-up de cluster pour Google Maps
+- Cacher les sources de carte dont vous n'avez pas besoin
+- Graphique d'altitude pour les routes et les pistes
+- Basculer entre les listes directement depuis la carte
+- Mode "Conduite" pour les cartes basées sur OpenStreetMap
+- Appui long sur la piste / route individuelle pour plus d'options
 
 ### Détails de la cache
 - Nouveau : Détecter les caractères supplémentaires dans les formules : –,  , ×
@@ -61,13 +57,17 @@ Comme annoncé avec les versions 2025.07.17 et 2025.12.01, nous avons finalement
 - Changement: Stocker le cache avant d'ajouter une image utilisateur
 - Correction : Crash lors du chargement des images intégrées directement dans le texte de la liste
 - Nouveau : Afficher ses propres favoris dans la vue des logs (Geocaching.com + logs hors-ligne)
-- New: Sending log is done in background
+- Nouveau : L'envoi du log se fait en arrière-plan
+- Correction : Inventaire masqué lors de la journalisation sous certaines conditions
+- Nouveau : Moyenne des coordonnées lors de la création de waypoint / de cache définie par l'utilisateur
+- Correction : La description n'a pas été chargée (changement du site)
 
 ### Wherigo Player
 - Nouveau : Traduction hors ligne pour les caches Wherigo
 - Nouveau : Amélioration de la gestion des boutons
 - Nouveau : Enregistrement automatique du statut
 - Nouveau : Possibilité de créer un raccourci vers Wherigo sur l'écran d'accueil de votre mobile
+- Correction : Les fichiers multimédias manquants/incorrects mènent à une erreur
 
 ### Général
 - Nouveau : Option de partage après avoir logué une cache
@@ -99,3 +99,7 @@ Comme annoncé avec les versions 2025.07.17 et 2025.12.01, nous avons finalement
 - Correction : « Utiliser les unités impériales » pas correctement initialisé lors d'une nouvelle installation
 - Changement: module de traduction hors ligne Bergamot open source remplaçant le traducteur Google ML Kit à source fermée
 - Changement : Nouveau sélecteur d'émoji
+
+**Bord à bord**
+
+En raison des politiques du Play Store, nous avons mis à jour le niveau de l'API Android cette version de c:geo cibles + nous avons modifié certaines routines de mise en page de l'écran. Cela peut provoquer avec quelques effets secondaires indésirables, en particulier sur les nouvelles versions d'Android. Si vous rencontrez des problèmes avec cette version de c:geo, veuillez signaler soit sur [GitHub](https://github.com/cgeo/cgeo) ou par e-mail à [support@cgeo.org](mailto:support@cgeo.org)

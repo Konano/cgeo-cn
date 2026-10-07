@@ -1,6 +1,7 @@
 package cgeo.geocaching.unifiedmap.mapsforgevtm;
 
 import cgeo.geocaching.R;
+import cgeo.geocaching.activity.ActivityMixin;
 import cgeo.geocaching.location.Geopoint;
 import cgeo.geocaching.location.Viewport;
 import cgeo.geocaching.settings.Settings;
@@ -75,6 +76,7 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
     private View mapAttribution;
     private boolean doReapplyTheme = false;
     private MapCoordinateConverter coordinateConverter = MapCoordinateConverter.IDENTITY;
+    private MapEventsReceiver mapEventsReceiver = null;
 
     private Event lastEvent = null;
 
@@ -110,7 +112,7 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
                 }
             }
             if (event == Map.SCALE_EVENT || event == Map.POSITION_EVENT) {
-                ((UnifiedMapActivity) requireActivity()).notifyZoomLevel(mMap.getMapPosition().zoomLevel);
+                ActivityMixin.requireActivity(getActivity(), activity -> ((UnifiedMapActivity) activity).notifyZoomLevel(mMap.getMapPosition().zoomLevel));
             }
             lastEvent = event; // remember to detect scaling combined with panning
         };
@@ -187,7 +189,10 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
             applyTheme(); // @todo: There must be a less resource-intensive way of applying style-changes...
             doReapplyTheme = false;
         }
-        mMapLayers.add(new MapsforgeVtmFragment.MapEventsReceiver(mMap));
+        if (mapEventsReceiver == null) {
+            mapEventsReceiver = new MapsforgeVtmFragment.MapEventsReceiver(mMap);
+            mMapLayers.add(mapEventsReceiver);
+        }
     }
 
     @Override
@@ -205,6 +210,7 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
 
     @Override
     public void onDestroyView() {
+        mapEventsReceiver = null;
         mMapView.onDestroy();
         themeHelper.disposeTheme();
         super.onDestroyView();
@@ -230,6 +236,10 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
                     mMapLayers.remove(layer);
                 } catch (IndexOutOfBoundsException ignore) {
                     // ignored
+                }
+                if (layer instanceof TileLayer) {
+                    // dispose the loader threads, they keep a back reference to the layer
+                    ((TileLayer) layer).onDetach();
                 }
             }
             layers.clear();

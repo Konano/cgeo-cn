@@ -295,6 +295,7 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
                 if (GeocacheChangedBroadcastReceiver.NAMED_FILTER_CHANGED.equals(geocode)) {
                     reloadCachesAndWaypoints();
                     invalidateOptionsMenu();
+                    ToggleItemType.NAMED_FILTERS.toggleMenuItem(toolbarMenu.findItem(R.id.menu_marker), Settings.isConditionalCacheMarkersEnabled());
                     return;
                 }
                 handleGeocodeChangedBroadcastReceived(geocode);
@@ -481,7 +482,8 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
                 // load list of caches belonging to list and scale map to see them all
                 final AtomicReference<Viewport> viewport3 = new AtomicReference<>();
                 AndroidRxUtils.andThenOnUi(Schedulers.io(), () -> {
-                    final SearchResult searchResult = DataStore.getBatchOfStoredCaches(null, mapType.fromList, mapType.filterContext.get(), null, false, -1);
+                    final GeocacheFilter filter = GeocacheFilter.createAnd(mapType.filterContext.get(), NamedFilter.getFilterbyId(mapType.fromNamedFilter));
+                    final SearchResult searchResult = DataStore.getBatchOfStoredCaches(null, mapType.fromList, filter, null, false, -1);
                     viewport3.set(DataStore.getBounds(searchResult.getGeocodes(), Settings.getZoomIncludingWaypoints()));
                     replaceSearchResultByGeocaches(searchResult);
                 }, () -> {
@@ -689,7 +691,9 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
                 waypoints.addAll(viewModel.caches.readWithResult(caches -> {
                     final Set<Waypoint> wpSet = new HashSet<>();
                     final Geocache cache = DataStore.loadCache(viewModel.mapType.target, LoadFlags.LOAD_WAYPOINTS);
-                    wpSet.addAll(cache.getWaypoints());
+                    if (cache != null) {
+                        wpSet.addAll(cache.getWaypoints());
+                    }
                     return wpSet;
                 }));
             }
@@ -753,7 +757,7 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
 
         if (viewModel.mapType.fromList != 0) {
             //List
-            listChooser.setList(viewModel.mapType.fromList, visibleCaches, false);
+            listChooser.setList(viewModel.mapType.fromList, viewModel.mapType.fromNamedFilter, visibleCaches, false);
         } else if (viewModel.mapType.type == UMTT_TargetGeocode) {
             //single cache
             final Geocache targetCache = getCurrentTargetCache();
@@ -942,9 +946,7 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
         ToggleItemType.LIVE_MODE.toggleMenuItem(itemMapLive, TRUE.equals(viewModel.transientIsLiveEnabled.getValue()));
         itemMapLive.setVisible(true);
 
-        final MenuItem itemNamedFilters = toolbarMenu.findItem(R.id.menu_named_filters);
-        final boolean anyActive = NamedFilter.getAll().stream().anyMatch(NamedFilter::isConditionalMarkerActive);
-        ToggleItemType.NAMED_FILTERS.toggleMenuItem(itemNamedFilters, anyActive);
+        ToggleItemType.NAMED_FILTERS.toggleMenuItem(toolbarMenu.findItem(R.id.menu_marker), Settings.isConditionalCacheMarkersEnabled());
 
         // map rotation state
         final int mapRotation = Settings.getMapRotation();
@@ -981,8 +983,7 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
     public boolean onCreateOptionsMenu(@NonNull final Menu menu) {
         final boolean result = super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.map_activity, menu);
-        FilterUtils.initializeFilterMenu(this, R.id.menu_filter, this);
-        FilterUtils.initializeNamedFilterMenu(this, R.id.menu_named_filters, this);
+        FilterUtils.initializeFilterMenu(this, R.id.menu_filter, R.id.menu_marker, this);
 
         MenuUtils.enableIconsInOverflowMenu(menu);
         this.toolbarMenu = menu;
@@ -1043,8 +1044,8 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
             return true;
         } else if (id == R.id.menu_filter) {
             FilterUtils.onClickFilterMenu(this);
-        } else if (id == R.id.menu_named_filters) {
-            FilterUtils.onClickNamedFilterMenu(this);
+        } else if (id == R.id.menu_marker) {
+            showNamedFilterActivateDeactivate();
         } else if (id == R.id.menu_store_caches) {
             final List<Geocache> list = viewModel.caches.readWithResult(caches ->
                     mapFragment.getViewport().filter(caches));
@@ -1181,7 +1182,7 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
 
     @Override
     public boolean showSavedFilterList() {
-        FilterUtils.openDialogSelectNamedFilter(this,
+        FilterUtils.openDialogSelectGeocacheFilter(this,
                 TextParam.id(R.string.cache_filter_storage_select_title),
                 viewModel.mapType.filterContext,
                 selectedFilter -> {
@@ -1192,7 +1193,7 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
 
     @Override
     public boolean showNamedFilterActivateDeactivate() {
-        FilterUtils.openDialogActivateDeactivateNamedFilters(this);
+        FilterUtils.openDialogActivateMarkers(this);
         return true;
     }
 
@@ -1580,6 +1581,9 @@ public class UnifiedMapActivity extends AbstractNavigationBarMapActivity impleme
 
     @Override
     protected void onDestroy() {
+        if (navigationTargetLayer != null) {
+            navigationTargetLayer.destroy();
+        }
         if (tileProvider != null) {
             tileProvider.onDestroy();
         }

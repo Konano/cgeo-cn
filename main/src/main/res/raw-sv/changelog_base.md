@@ -1,20 +1,3 @@
-### Allmän versionsinformation
-
-**Kant till kant**
-
-På grund av Play Store-policyer har vi uppdaterat Android API-nivån denna version av c:geo riktar sig mot + vi har ändrat några av skärmlayoutrutinerna. Detta kan komma med några oönskade biverkningar, särskilt på nyare Android-versioner. Om du har problem med denna version av c:geo, vänligen rapportera antingen på [GitHub](https://github.com/cgeo/cgeo) eller via e-post till [support@cgeo.org](mailto:support@cgeo.org)
-
-**Äldre kartor**
-
-Äldre kartor: Som meddelats med utgåvorna från 2025.07.17 och 2025.12.01, har vi äntligen tagit bort äldre implementationer för våra kartor. Du kommer att bytas till vår nya UnifiedMap automatiskt och bör inte märka några skillnader förutom ett par nya funktioner, varav några är
-- Kartrotation för OpenStreetMap-baserade kartor (online + offline)
-- Klusterpopup för Google Maps
-- Dölj kartkällor som du inte behöver
-- Höjddiagram för rutter och spår
-- Växla mellan listor direkt från kartan
-- "Körläge" för OpenStreetMap-baserade kartor
-- Långtryck på spåret / individuell rutt för ytterligare alternativ
-
 ### Karta
 - Nyhet: Ruttoptimering cachar beräknade data
 - Nyhet: Aktivering av live-läge håller waypoints för nuvarande inställda mål synliga
@@ -34,6 +17,19 @@ På grund av Play Store-policyer har vi uppdaterat Android API-nivån denna vers
 - Fix: Nedladdare av rutor stoppas under vissa förhållanden (OpenStreetMap endast onlinekartor)
 - Nytt: Villkorade cachemarkörer
 - Nytt: Visa navigeringstips (pil + avstånd)
+- Förändring: Minskat minneskraven för kartaktivitet
+- Fix: Google Map återställer positionen till N0 / W0 vid kartläggning av en cachelista
+
+**Äldre kartor**
+
+Äldre kartor: Som meddelats med utgåvorna från 2025.07.17 och 2025.12.01, har vi äntligen tagit bort äldre implementationer för våra kartor. Du kommer att bytas till vår nya UnifiedMap automatiskt och bör inte märka några skillnader förutom ett par nya funktioner, varav några är
+- Kartrotation för OpenStreetMap-baserade kartor (online + offline)
+- Klusterpopup för Google Maps
+- Dölj kartkällor som du inte behöver
+- Höjddiagram för rutter och spår
+- Växla mellan listor direkt från kartan
+- "Körläge" för OpenStreetMap-baserade kartor
+- Långtryck på spåret / individuell rutt för ytterligare alternativ
 
 ### Cachedetaljer
 - Nytt: Upptäck ytterligare tecken i formler: –, ⋅, ×
@@ -61,13 +57,17 @@ På grund av Play Store-policyer har vi uppdaterat Android API-nivån denna vers
 - Ändra: Lagra cache innan du lägger till användarbild
 - Fix: Krasch vid inläsning av bilder inbäddade direkt i text-listning
 - Nyhet: Visa egna favoriter i loggvy (Geocaching.com + offline-loggar)
-- New: Sending log is done in background
+- Nytt: Att skicka loggen är klart i bakgrunden
+- Fix: Inventarier dolda vid loggning under vissa förhållanden
+- Nytt: Medelvärde av koordinater för att skapa vägpunkter/sätta koordinater för användardefinierade cacher
+- Fix: Beskrivning inte laddad (ändring av webbplatsen)
 
 ### Wherigo-spelare
 - Nyhet: Offline-översättning för Wherigos
 - Nytt: Förbättrad knapphantering
 - Ny: Status auto-spara
 - Nyhet: Alternativ för att skapa genväg till Wherigo-spelare på mobilens hemskärm
+- Fix: Saknade/fel mediefiler leder till fel
 
 ### Allmänt
 - Nyhet: alternativ att dela efter att ha loggat en cache
@@ -99,3 +99,7 @@ På grund av Play Store-policyer har vi uppdaterat Android API-nivån denna vers
 - Fix: "Använd brittiska inställningar" initieras inte korrekt på nya installationer
 - Förändring: Bergamot översättningsmodul med öppen källkod som ersätter Google ML Kit översättare
 - Förändring: Ny emoji-väljare
+
+**Kant till kant**
+
+På grund av Play Store-policyer har vi uppdaterat Android API-nivån denna version av c:geo riktar sig mot + vi har ändrat några av skärmlayoutrutinerna. Detta kan komma med några oönskade biverkningar, särskilt på nyare Android-versioner. Om du har problem med denna version av c:geo, vänligen rapportera antingen på [GitHub](https://github.com/cgeo/cgeo) eller via e-post till [support@cgeo.org](mailto:support@cgeo.org)

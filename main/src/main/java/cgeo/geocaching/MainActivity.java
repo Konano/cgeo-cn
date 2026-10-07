@@ -37,6 +37,7 @@ import cgeo.geocaching.ui.TextParam;
 import cgeo.geocaching.ui.WeakReferenceHandler;
 import cgeo.geocaching.ui.dialog.SimpleDialog;
 import cgeo.geocaching.utils.AndroidRxUtils;
+import cgeo.geocaching.utils.BranchDetectionHelper;
 import cgeo.geocaching.utils.ClipboardUtils;
 import cgeo.geocaching.utils.ContextLogger;
 import cgeo.geocaching.utils.DebugUtils;
@@ -360,7 +361,7 @@ public class MainActivity extends AbstractNavigationBarActivity {
     private void checkChangedInstall() {
         try {
             final long lastChecksum = Settings.getLastChangelogChecksum();
-            final long checksum = TextUtils.checksum(FileUtils.getChangelogMaster(this) + FileUtils.getChangelogRelease(this));
+            final long checksum = TextUtils.checksum((BranchDetectionHelper.isReleaseCandidate() ? FileUtils.getChangelogBetaUpdate(this) : "") + FileUtils.getChangelogMaster(this) + FileUtils.getChangelogRelease(this));
             Settings.setLastChangelogChecksum(checksum);
 
             if (lastChecksum == 0) {
@@ -621,13 +622,13 @@ public class MainActivity extends AbstractNavigationBarActivity {
     }
 
     public void updateCacheCounter() {
-        AndroidRxUtils.bindActivity(this, DataStore.getAllCachesCountObservable()).subscribe(countOfflineCaches -> {
+        resumeDisposables.add(AndroidRxUtils.bindActivity(this, DataStore.getAllCachesCountObservable()).subscribe(countOfflineCaches -> {
             final TextView counter = findViewById(R.id.offline_counter);
             counter.setVisibility(countOfflineCaches > 0 ? View.VISIBLE : View.GONE);
             if (countOfflineCaches > 0) {
                 counter.setText(LocalizationUtils.getPlural(R.plurals.caches_stored_offline, countOfflineCaches));
             }
-        }, throwable -> Log.e("Unable to add cache count", throwable));
+        }, throwable -> Log.e("Unable to add cache count", throwable)));
     }
 
     @Override

@@ -29,8 +29,6 @@ import cgeo.geocaching.databinding.CachedetailDetailsPageBinding;
 import cgeo.geocaching.databinding.CachedetailImagegalleryPageBinding;
 import cgeo.geocaching.databinding.CachedetailInventoryPageBinding;
 import cgeo.geocaching.databinding.CachedetailWaypointsPageBinding;
-import cgeo.geocaching.enumerations.CacheAttribute;
-import cgeo.geocaching.enumerations.CacheAttributeCategory;
 import cgeo.geocaching.enumerations.CacheType;
 import cgeo.geocaching.enumerations.LoadFlags;
 import cgeo.geocaching.enumerations.LoadFlags.RemoveFlag;
@@ -397,7 +395,7 @@ public class CacheDetailActivity extends TabbedViewPagerActivity
 
         // Load Generic Trackables
         if (StringUtils.isNotBlank(geocode)) {
-            AndroidRxUtils.bindActivity(this,
+            createDisposables.add(AndroidRxUtils.bindActivity(this,
                     // Obtain the active connectors and load trackables in parallel.
                     Observable.fromIterable(ConnectorFactory.getGenericTrackablesConnectors()).flatMap((Function<TrackableConnector, Observable<Trackable>>) trackableConnector -> {
                         processedBrands.add(trackableConnector.getBrand());
@@ -410,7 +408,7 @@ public class CacheDetailActivity extends TabbedViewPagerActivity
                     // Update the UI if any trackables were found.
                     notifyDataSetChanged();
                 }
-            });
+            }));
         }
 
         // get notified on async cache changes (e.g.: waypoint creation from map or background refresh)
@@ -1262,7 +1260,8 @@ public class CacheDetailActivity extends TabbedViewPagerActivity
 
             @Override
             protected void onFinished() {
-                CacheInfoBoxes.updateCacheLists(CacheDetailActivity.this.findViewById(R.id.offline_lists), cache, null);
+                CacheInfoBoxes.updateCacheListsAndMatchingFilters(CacheDetailActivity.this.findViewById(R.id.cache_offlinebox),
+                        cache, CacheDetailActivity.this);
             }
         }.execute();
     }
@@ -1423,16 +1422,12 @@ public class CacheDetailActivity extends TabbedViewPagerActivity
             details.addLatestLogs(cache);
 
             // cache attributes
-            updateAttributes(activity);
-            binding.attributesBox.setVisibility(cache.getAttributes().isEmpty() ? View.GONE : View.VISIBLE);
+            CacheInfoBoxes.updateAttributes(cache, binding.attributesBox, binding.attributesGrid, activity);
 
-            // list
+            // list and matching filters
             CacheInfoBoxes.updateOfflineBox(binding.getRoot(), cache, new RefreshCacheClickListener(), new DropCacheClickListener(),
                     new StoreCacheClickListener(), null, new MoveCacheClickListener(), new StoreCacheClickListener());
-            CacheInfoBoxes.updateCacheLists(binding.getRoot(), cache, activity);
-
-            // named filter box
-            CacheInfoBoxes.updateNamedFilterBox(binding.getRoot(), cache, activity);
+            CacheInfoBoxes.updateCacheListsAndMatchingFilters(binding.getRoot(), cache, activity);
 
             // watchlist
             binding.addToWatchlist.setOnClickListener(new AddToWatchlistClickListener());
@@ -1460,50 +1455,6 @@ public class CacheDetailActivity extends TabbedViewPagerActivity
             } else {
                 binding.licenseBox.findViewById(R.id.license_box).setVisibility(View.GONE);
             }
-        }
-
-        private void updateAttributes(final Activity activity) {
-            final List<String> attributes = cache.getAttributes();
-            if (!CacheAttribute.hasRecognizedAttributeIcon(attributes)) {
-                binding.attributesGrid.setVisibility(View.GONE);
-                return;
-            }
-            // traverse by category and attribute order
-            final ArrayList<String> orderedAttributeNames = new ArrayList<>();
-            final StringBuilder attributesText = new StringBuilder();
-            CacheAttributeCategory lastCategory = null;
-            for (CacheAttributeCategory category : CacheAttributeCategory.getOrderedCategoryList()) {
-                for (CacheAttribute attr : CacheAttribute.getByCategory(category)) {
-                    for (Boolean enabled : Arrays.asList(false, true, null)) {
-                        final String key = attr.getValue(enabled);
-                        if (attributes.contains(key)) {
-                            if (lastCategory != category) {
-                                if (lastCategory != null) {
-                                    attributesText.append("<br /><br />");
-                                }
-                                attributesText.append("<b><u>").append(category.getName()).append("</u></b><br />");
-                                lastCategory = category;
-                            } else {
-                                attributesText.append("<br />");
-                            }
-                            orderedAttributeNames.add(key);
-                            attributesText.append(attr.getL10n(enabled == null || enabled));
-                        }
-                    }
-                }
-            }
-
-            binding.attributesGrid.setAdapter(new AttributesGridAdapter(activity, orderedAttributeNames, this::toggleAttributesView));
-            binding.attributesGrid.setVisibility(View.VISIBLE);
-
-            binding.attributesText.setText(HtmlCompat.fromHtml(attributesText.toString(), 0));
-            binding.attributesText.setVisibility(View.GONE);
-            binding.attributesText.setOnClickListener(v -> toggleAttributesView());
-        }
-
-        protected void toggleAttributesView() {
-            binding.attributesText.setVisibility(binding.attributesText.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
-            binding.attributesGrid.setVisibility(binding.attributesGrid.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
         }
 
         private class StoreCacheClickListener implements View.OnClickListener, View.OnLongClickListener {
@@ -1737,7 +1688,7 @@ public class CacheDetailActivity extends TabbedViewPagerActivity
             if (!supportsFavoritePoints) {
                 return;
             }
-            
+
             // Add/remove to Favorites is only possible if the cache has been found
             if (!cache.isFound()) {
                 return;
@@ -1985,6 +1936,10 @@ public class CacheDetailActivity extends TabbedViewPagerActivity
             };
             binding.hint.setOnClickListener(listener);
             binding.hintBox.setOnClickListener(listener);
+            if (!Settings.getHintAsRot13()) {
+                final String hintPlain = binding.hint.getText().toString();
+                translator.translate(hintPlain, translated -> binding.hint.setText(translated), e -> binding.hint.setText(hintPlain));
+            }
         }
 
         /** Resets the hint text to the original cache value, re-applying rot13 if configured. */

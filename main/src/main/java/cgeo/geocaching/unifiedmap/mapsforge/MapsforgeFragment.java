@@ -64,6 +64,7 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
     private View mapAttribution;
     private boolean doReapplyTheme = false;
     private MapCoordinateConverter coordinateConverter = MapCoordinateConverter.IDENTITY;
+    private MapEventsReceiver mapEventsReceiver = null;
 
     public MapsforgeFragment() {
         super(R.layout.unifiedmap_mapsforge_fragment);
@@ -181,7 +182,10 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
             applyTheme(); // @todo: There must be a less resource-intensive way of applying style-changes...
             doReapplyTheme = false;
         }
-        mMapView.getLayerManager().getLayers().add(new MapEventsReceiver());
+        if (mapEventsReceiver == null) {
+            mapEventsReceiver = new MapEventsReceiver();
+            mMapView.getLayerManager().getLayers().add(mapEventsReceiver);
+        }
     }
 
     @Override
@@ -208,6 +212,7 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
     @Override
     public void onDestroyView() {
 //        themeHelper.disposeTheme();
+        mapEventsReceiver = null;
         mMapView.destroyAll();
         super.onDestroyView();
     }

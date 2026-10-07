@@ -212,6 +212,11 @@ public class LogCacheActivity extends AbstractLoggingActivity implements LoaderM
         binding.inventory.setAdapter(inventoryAdapter);
 
         cache = DataStore.loadCache(geocode, LoadFlags.LOAD_CACHE_OR_DB);
+        if (cache == null) {
+            showToast(getString(R.string.err_detail_cache_find_some));
+            finish();
+            return;
+        }
         invalidateOptionsMenuCompatible();
         setLogTypeValues(cache.getPossibleLogTypes());
         cacheVotingBar.initialize(cache, binding.getRoot(), null);
@@ -392,11 +397,9 @@ public class LogCacheActivity extends AbstractLoggingActivity implements LoaderM
         finish(SaveMode.NORMAL);
     }
 
-    public void finish(final SaveMode saveMode) {
+    private void finish(final SaveMode saveMode) {
         saveLog(saveMode);
-        if (lastSavedState != null && !StringUtils.isBlank(lastSavedState.log)) {
-            Settings.setLastCacheLog(lastSavedState.log);
-        }
+
         logActivityHelper.finish();
         super.finish();
     }
@@ -469,7 +472,16 @@ public class LogCacheActivity extends AbstractLoggingActivity implements LoaderM
 
     private void saveLog(final SaveMode saveMode) {
 
-        if (logEditMode != LogEditMode.CREATE_NEW || saveMode == SaveMode.SENDING) {
+        if (logEditMode != LogEditMode.CREATE_NEW) {
+            return;
+        }
+
+        final String cacheLog = currentLogText();
+        if (StringUtils.isNotEmpty(cacheLog)) {
+            Settings.setLastCacheLog(cacheLog);
+        }
+
+        if (saveMode == SaveMode.SENDING) {
             return;
         }
 
@@ -697,7 +709,7 @@ public class LogCacheActivity extends AbstractLoggingActivity implements LoaderM
             this.availableFavoritePoints = data.getAvailableFavoritePoints();
         }
 
-
+        
         refreshGui();
         showProgress(false);
     }
@@ -709,9 +721,26 @@ public class LogCacheActivity extends AbstractLoggingActivity implements LoaderM
             rLogTypes.add(this.originalLogEntry.logType);
             rLogTypes.addAll(logTypes);
             this.logType.setValues(rLogTypes);
-        } else {
-            this.logType.setValues(logTypes);
+            return;
         }
+
+        // set NOTE as logType if the current one is not available anymore
+        // (e.g. due to a changed online log-status)
+        final LogType defaultLogType = LogType.NOTE;
+        final LogType currentLogType = this.logType.get();
+        if (currentLogType != null && !logTypes.contains(currentLogType)) {
+            if (!logTypes.contains(defaultLogType)) {
+                // NOTE log type must ALWAYS be available for selection
+                final List<LogType> rLogTypes = new ArrayList<>();
+                rLogTypes.add(defaultLogType);
+                rLogTypes.addAll(logTypes);
+                this.logType.setValues(rLogTypes);
+            }
+            this.logType.set(defaultLogType);
+            return;
+        }
+
+        this.logType.setValues(logTypes);
     }
 
     @Override

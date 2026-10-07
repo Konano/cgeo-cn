@@ -276,6 +276,8 @@
     <string name="list_not_available">Daftar tidak lagi tersedia, beralih ke daftar standar</string>
     <!-- caches lists filter -->
     <!-- named filter activity -->
+    <!-- dialog to create element with parent -->
+    <string name="dialog_name">Nama</string>
     <!-- about -->
     <string name="about_version">Versi</string>
     <string name="about_changelog">Perubahan</string>
@@ -563,6 +565,7 @@
     <string name="ignore_confirm_title">Berhati-hati</string>
     <string name="ignore_confirm_message">Mengabaikan cache berarti bahwa cache ini tidak akan pernah muncul lagi ketika memuat data dari geocaching.com. Anda hanya akan dapat melihat cache lagi dengan membatalkan abaian pada situs tersebut.</string>
     <string name="cache_status_offline_log">Log disimpan</string>
+    <string name="cache_status_attended">Dihadiri</string>
     <string name="cache_status_found">Ditemukan</string>
     <string name="cache_not_status_found">Tidak ditemukan</string>
     <string name="cache_status_archived">Diarsipkan</string>

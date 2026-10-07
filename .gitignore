@@ -56,3 +56,5 @@ captures/
 .claude/
 
 main/usage.txt
+
+temp/

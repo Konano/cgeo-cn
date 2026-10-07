@@ -553,8 +553,6 @@
     <string name="list_dialog_rename_title">Hernoem lijst</string>
     <string name="list_dialog_rename">Hernoem</string>
     <string name="list_not_available">Lijst is niet langer beschikbaar, wissel naar standaard lijst</string>
-    <string name="list_parent_list">Bovenliggende lijst</string>
-    <string name="list_create_parent">&lt;Maak nieuwe bovenliggende lijst&gt;</string>
     <string name="list_name">Lijstnaam</string>
     <string name="list_confirm_rename">Hernoemen van \"%1$s\" naar \"%2$s\"\n%3$s\nDeze actie kan niet ongedaan worden gemaakt!</string>
     <string name="list_confirm_no_hierarchy">\nGeen \":\" gevonden - alle overeenkomende lijsten zullen worden omgezet naar top-niveau lijsten\n</string>
@@ -732,6 +730,8 @@
         <item>&gt;1m</item>
     </string-array>
     <!-- named filter activity -->
+    <!-- dialog to create element with parent -->
+    <string name="dialog_name">Naam</string>
     <!-- about -->
     <string name="about_version">Versie</string>
     <string name="about_changelog">Changelog</string>
@@ -1103,7 +1103,6 @@
     <string name="settings_info_themes_title">Info over kaart thema\'s</string>
     <string name="settings_info_themes">c:geo ondersteunt aangepaste thema\'s voor offline kaarten. Deze kunnen worden gebruikt om de kleurstijl van de kaart te wijzigen (bijv. om een nachtzicht-kaart te hebben) of om bepaalde objecten te markeren, zoals fietspaden of hoogte-lijnen op de kaart.\n\nWerken met niet-ge-zipte kaartthema\'s kan de openingsprestaties van de kaart verminderen. In dit geval kan de themamap optioneel worden gesynchroniseerd met een app-private lokale map voor snellere toegang (ten koste van enige opslagruimte).</string>
     <string name="settings_info_hillshading_title">Informatie over Reliëfweergave</string>
-    <string name="settings_info_hillshading">Reliëfweergave is een techniek voor het maken van topografische kaarten door een verlichtingseffect op de kaart toe te voegen om veranderingen in hoogte aan te geven. Hellingen zullen donker/licht worden weergegeven om een 3D-effect te genereren.\nDe reliëfweergave bronbestanden kunnen worden gedownload uit het kaarten menu.\nNiet compatible met Unifiedmap VTM variant.</string>
     <string name="settings_hillshading_enable">Reliëfweergave</string>
     <string name="init_hillshading_hq">Hoge kwaliteit reliëfweergave</string>
     <string name="init_summary_hillshading_hq">Meer gedetailleerde reliëfweergave overlay maar ~50%% langzamere weergave bij het uitzoomen</string>
@@ -1545,7 +1544,7 @@
     <string name="ignore_confirm_message">Een cache negeren betekent dat deze cache nooit meer geladen zal worden van geocaching.com. Je kunt deze cache alleen weer zichtbaar maken door dit te annuleren op geocaching.com.</string>
     <string name="cache_status">Status</string>
     <string name="cache_status_offline_log">Log opgeslagen</string>
-    <string name="cache_status_attended">Bijgewoond</string>
+    <string name="cache_status_attended">Was aanwezig</string>
     <string name="cache_status_found">Gevonden</string>
     <string name="cache_not_status_found">Niet gevonden</string>
     <string name="cache_status_archived">Gearchiveerd</string>
@@ -1881,7 +1880,7 @@
     <string name="google_maps_option_group_map">Kaart Opties</string>
     <string name="google_maps_option_show_traffic">Toon Verkeer</string>
     <string name="google_maps_option_show_buildings">Toon 3D gebouwen</string>
-    <string name="google_maps_option_group_theme">Thema Opties</string>
+    <string name="google_maps_option_group_theme">Thema opties</string>
     <string name="google_maps_option_show_feature_theme">Toon Thema functies</string>
     <string name="google_maps_option_show_feature_administrative_all">Toon Administratieve</string>
     <string name="google_maps_option_show_feature_landscape_all">Toon Landschap</string>
@@ -2431,7 +2430,7 @@
     <string name="map_autotarget_individual_route">Route startpunt instellen als doel</string>
     <string name="map_disable_autotarget_individual_route">\"Zet route startpunt als doel\" uitgeschakeld</string>
     <string name="map_manual_target_route_name">Huidige navigatie</string>
-    <string name="map_clear_manual_targets">Routering-doel wissen</string>
+    <string name="map_clear_manual_targets">Routeringsdoel wissen</string>
     <string name="map_manual_targets_cleared">Handmatige doelen gewist</string>
     <string name="map_clear_individual_route">Individuele route wissen</string>
     <string name="map_clear_individual_route_confirm">Wil je alle caches/waypoints van je individuele route verwijderen?</string>
@@ -2589,7 +2588,7 @@
     <string name="brouter_info">Offline routering service</string>
     <string name="hillshading_info">Offline reliëfweergave</string>
     <string name="maptheme_elevate_categoryinfo">Relevant voor: [A] Gebieden, [P] POI, [R] Routes, [W] Manieren</string>
-    <string name="maptheme_vtm_scaling_summary">Schaalopties voor offline kaarten (VTM alleen, herstart nodig)</string>
+    <string name="maptheme_vtm_scaling_summary">Schaalopties voor offline kaarten (alleen VTM, herstart nodig)</string>
     <string name="maptheme_scale_map_title">Kaart Schaalfactor</string>
     <string name="maptheme_scale_map_summary">Schaalt kaart; 100% = niet schalen</string>
     <string name="maptheme_scale_text_title">Tekst schaalfactor</string>
@@ -2733,6 +2732,8 @@
     <string name="delete">Verwijderen</string>
     <string name="play">Spelen</string>
     <string name="copy" tools:ignore="PrivateResource">Kopiëren</string>
+    <string name="pause">Pauzeren</string>
+    <string name="resume">Hervatten</string>
     <!-- Multi-Selections -->
     <string name="multiselect_selectall">Alles selecteren</string>
     <string name="multiselect_selectvisible">Selecteer Zichtbare</string>

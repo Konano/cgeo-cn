@@ -197,6 +197,29 @@ public class Settings {
         }
     }
 
+    /**
+     * Controls which {@link cgeo.geocaching.filters.NamedFilter}s matching the currently displayed cache
+     * are shown in the cache details view.
+     */
+    public enum NamedFilterDisplayMode {
+        /** Do not show any matching named filters. */
+        NONE(R.string.named_filter_display_mode_none),
+        /** Only show matching named filters whose marker is currently active. */
+        ACTIVE_ONLY(R.string.named_filter_display_mode_active_only),
+        /** Show all matching named filters, active and inactive. */
+        ALL(R.string.named_filter_display_mode_all);
+
+        private final @StringRes int displayNameResId;
+
+        NamedFilterDisplayMode(final @StringRes int displayNameResId) {
+            this.displayNameResId = displayNameResId;
+        }
+
+        public String getDisplayName() {
+            return LocalizationUtils.getString(displayNameResId);
+        }
+    }
+
     public static class PrefLogTemplate {
         private final @NonNull String key;
         private final String title;
@@ -1116,6 +1139,13 @@ public class Settings {
 
     public static boolean useLiveCompassInNavigationAction() {
         return getBoolean(R.string.pref_live_compass_in_navigation_action, false);
+    }
+
+    @NonNull
+    public static NamedFilterDisplayMode getNamedFilterDisplayMode() {
+        return EnumUtils.getEnum(NamedFilterDisplayMode.class,
+                getString(R.string.pref_named_filter_display_mode, NamedFilterDisplayMode.ACTIVE_ONLY.name()),
+                NamedFilterDisplayMode.ACTIVE_ONLY);
     }
 
     public static boolean isTrackableAutoVisit() {
@@ -2385,6 +2415,14 @@ public class Settings {
         }
     }
 
+    public static boolean isConditionalCacheMarkersEnabled() {
+        return getBoolean(R.string.pref_conditionalCacheMarkersEnabled, true);
+    }
+
+    public static void setConditionalCacheMarkersEnabled(final boolean enabled) {
+        putBoolean(R.string.pref_conditionalCacheMarkersEnabled, enabled);
+    }
+
     /**
      * checks whether legacy folder needs to be migrated
      * (legacy value is set and not yet migrated)
@@ -2478,7 +2516,8 @@ public class Settings {
                 LocalizationUtils.getPlainString(R.string.pref_ocro_tokensecret), LocalizationUtils.getPlainString(R.string.pref_ocro_tokenpublic), LocalizationUtils.getPlainString(R.string.pref_temp_ocro_token_secret), LocalizationUtils.getPlainString(R.string.pref_temp_ocro_token_public),
                 LocalizationUtils.getPlainString(R.string.pref_ocuk2_tokensecret), LocalizationUtils.getPlainString(R.string.pref_ocuk2_tokenpublic), LocalizationUtils.getPlainString(R.string.pref_temp_ocuk2_token_secret), LocalizationUtils.getPlainString(R.string.pref_temp_ocuk2_token_public),
                 LocalizationUtils.getPlainString(R.string.pref_su_tokensecret), LocalizationUtils.getPlainString(R.string.pref_su_tokenpublic), LocalizationUtils.getPlainString(R.string.pref_temp_su_token_secret), LocalizationUtils.getPlainString(R.string.pref_temp_su_token_public),
-                LocalizationUtils.getPlainString(R.string.pref_fakekey_geokrety_authorization)
+                LocalizationUtils.getPlainString(R.string.pref_fakekey_geokrety_authorization),
+                LocalizationUtils.getPlainString(R.string.pref_cookiejar)
         );
         return sensitiveKeys;
     }

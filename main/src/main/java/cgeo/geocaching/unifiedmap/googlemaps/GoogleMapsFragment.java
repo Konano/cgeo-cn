@@ -28,6 +28,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -47,6 +48,7 @@ public class GoogleMapsFragment extends AbstractMapFragment implements OnMapRead
     private LatLngBounds lastBounds = null;
 
     private boolean mapIsCurrentlyMoving;
+    private boolean mapIsInAnimation = false; // to suppress bearing updates temporarily
 
     public GoogleMapsFragment() {
         super(R.layout.unifiedmap_googlemaps_fragment);
@@ -73,12 +75,16 @@ public class GoogleMapsFragment extends AbstractMapFragment implements OnMapRead
             }
         });
 
-        // add map fragment
-        final SupportMapFragment mapFragment = SupportMapFragment.newInstance();
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.mapViewGM, mapFragment)
-                .commit();
+        // add map fragment (hosted in the child FragmentManager so its container R.id.mapViewGM is resolved
+        // within this fragment's own view, and it is restored correctly after config change, see #18415)
+        final FragmentManager fm = getChildFragmentManager();
+        SupportMapFragment mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.mapViewGM);
+        if (mapFragment == null) {
+            mapFragment = SupportMapFragment.newInstance();
+            fm.beginTransaction()
+                    .add(R.id.mapViewGM, mapFragment)
+                    .commit();
+        }
 
         // start map
         mapFragment.getMapAsync(this);
@@ -120,7 +126,7 @@ public class GoogleMapsFragment extends AbstractMapFragment implements OnMapRead
         mMap.setOnCameraMoveStartedListener(reason -> {
             mapIsCurrentlyMoving = true;
             lastBounds = mMap.getProjection().getVisibleRegion().latLngBounds;
-            scaleDrawer.drawScale(lastBounds);
+            scaleDrawer.drawScale(mMap, lastBounds);
             if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE && Boolean.TRUE.equals(viewModel.followMyLocation.getValue())) {
                 viewModel.followMyLocation.setValue(false);
             }
@@ -132,7 +138,7 @@ public class GoogleMapsFragment extends AbstractMapFragment implements OnMapRead
         mMap.setOnCameraIdleListener(() -> {
             mapIsCurrentlyMoving = false;
             lastBounds = mMap.getProjection().getVisibleRegion().latLngBounds;
-            scaleDrawer.drawScale(lastBounds);
+            scaleDrawer.drawScale(mMap, lastBounds);
         });
 
         initLayers();
@@ -219,7 +225,19 @@ public class GoogleMapsFragment extends AbstractMapFragment implements OnMapRead
             final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(new LatLngBounds(
                     new LatLng(bounds.bottomLeft.getLatitude(), bounds.bottomLeft.getLongitude()),
                     new LatLng(bounds.topRight.getLatitude(), bounds.topRight.getLongitude())), 50);
-            mMap.animateCamera(cu);
+            // block bearing updates while zooming
+            mapIsInAnimation = true;
+            mMap.animateCamera(cu, new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
+                    mapIsInAnimation = false;
+                }
+
+                @Override
+                public void onCancel() {
+                    mapIsInAnimation = false;
+                }
+            });
         }
     }
 
@@ -258,7 +276,7 @@ public class GoogleMapsFragment extends AbstractMapFragment implements OnMapRead
 
     @Override
     public void setBearing(final float bearing) {
-        if (mMap != null) {
+        if (mMap != null && !mapIsInAnimation) {
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder(mMap.getCameraPosition()).bearing(AngleUtils.normalize(bearing)).build()));
         }
     }
