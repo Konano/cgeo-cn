@@ -11,6 +11,7 @@ import cgeo.geocaching.utils.Log;
 import cgeo.geocaching.utils.MessageCenterUtils;
 import cgeo.geocaching.utils.ProcessUtils;
 import cgeo.geocaching.utils.TransactionSizeLogger;
+import cgeo.geocaching.utils.Version;
 import cgeo.geocaching.utils.offlinetranslate.TranslationModelManager;
 
 import android.annotation.SuppressLint;
@@ -145,9 +146,11 @@ public class CgeoApplication extends Application {
     @Override
     public void onCreate() {
         Log.iForce("---------------- CGeoApplication: startup -------------");
-        Log.e("c:geo version " + BuildConfig.VERSION_NAME);
         try (ContextLogger ignore = new ContextLogger(true, "CGeoApplication.onCreate")) {
             super.onCreate();
+            Log.iForce("c:geo CN version " + Version.getVersionName(this) + ", package " + getPackageName()
+                    + ", versionCode " + Version.getVersionCode(this) + ", commit " + BuildConfig.GIT_COMMIT
+                    + ", upstream " + BuildConfig.UPSTREAM_COMMIT);
 
             // distinguish between c:geo main process and subprocesses (eg: brouter_service), that don't need full initialization
             final boolean isMainProcess = ProcessUtils.isMainProcess(this);

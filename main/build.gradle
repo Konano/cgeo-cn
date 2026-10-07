@@ -49,6 +49,9 @@ android {
 
         versionName = versionNameFromDate()
         versionCode = versionCodeFromDate(0)
+        buildConfigField 'String', 'GIT_COMMIT', "\"${commitIdShort}\""
+        // Update this baseline when integrating a new upstream release.
+        buildConfigField 'String', 'UPSTREAM_COMMIT', '"532e1cee2"'
 
         // this is necessary to move .google_measurement_service into a app-specific namespace (see https://github.com/kotmyrevich/analytics-issues/issues/784)
         applicationId = "cgeo.geocaching"
@@ -667,18 +670,13 @@ abstract class GitCommitIdValueSource implements ValueSource<String, None> {
     @Inject
     abstract ExecOperations getExecOperations()
 
-    static String commitIdShort
-
     String obtain() {
-        if (commitIdShort == null) {
-            ByteArrayOutputStream output = new ByteArrayOutputStream()
-            execOperations.exec {
-                it.commandLine "git", "rev-parse", "HEAD"
-                it.standardOutput = output
-            }
-            commitIdShort = new String(output.toByteArray()).trim().substring(0, 7)
+        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        execOperations.exec {
+            it.commandLine "git", "rev-parse", "HEAD"
+            it.standardOutput = output
         }
-        return commitIdShort
+        return new String(output.toByteArray()).trim().substring(0, 7)
     }
 }
 

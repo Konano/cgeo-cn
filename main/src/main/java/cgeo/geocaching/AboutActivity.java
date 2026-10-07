@@ -169,7 +169,7 @@ public class AboutActivity extends TabbedViewPagerActivity {
                 return;
             }
             binding.getRoot().setVisibility(View.VISIBLE);
-            binding.aboutVersionString.setText(Version.getVersionName(activity));
+            binding.aboutVersionString.setText("c:geo CN " + Version.getVersionName(activity) + " (" + BuildConfig.GIT_COMMIT + ")");
             setClickListener(binding.donate, "https://www.cgeo.org");
             if (StringUtils.isNotEmpty(BuildConfig.SPECIAL_BUILD)) {
                 binding.aboutSpecialBuild.setText(BuildConfig.SPECIAL_BUILD);

@@ -1,5 +1,6 @@
 package cgeo.geocaching.utils;
 
+import cgeo.geocaching.BuildConfig;
 import cgeo.geocaching.R;
 import cgeo.geocaching.connector.ConnectorFactory;
 import cgeo.geocaching.connector.IConnector;
@@ -73,7 +74,11 @@ public final class SystemInformation {
         }
         final String hideWaypoints = (Settings.isExcludeWpOriginal() ? "original " : "") + (Settings.isExcludeWpParking() ? "parking " : "") + (Settings.isExcludeWpVisited() ? "visited" : "");
         final StringBuilder body = new StringBuilder("## System information").append("\n")
-                .append("\nc:geo version: ").append(Version.getVersionName(context)).append("\n")
+                .append("\nc:geo CN version: ").append(Version.getVersionName(context)).append("\n")
+                .append("\nApplication ID: ").append(context.getPackageName())
+                .append("\nVersion code: ").append(Version.getVersionCode(context))
+                .append("\nSource commit: ").append(BuildConfig.GIT_COMMIT)
+                .append("\nUpstream commit: ").append(BuildConfig.UPSTREAM_COMMIT).append("\n")
                 .append("\nDatetime: ").append(Formatter.formatDateTime(System.currentTimeMillis())).append("\n")
 
                 .append("\nDevice:")
