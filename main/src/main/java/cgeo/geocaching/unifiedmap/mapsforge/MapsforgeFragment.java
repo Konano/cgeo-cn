@@ -42,7 +42,6 @@ import org.mapsforge.core.model.Dimension;
 import org.mapsforge.core.model.LatLong;
 import org.mapsforge.core.model.Point;
 import org.mapsforge.core.model.Rotation;
-import org.mapsforge.core.util.LatLongUtils;
 import org.mapsforge.core.util.MercatorProjection;
 import org.mapsforge.core.util.Parameters;
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
@@ -54,7 +53,6 @@ import org.mapsforge.map.layer.cache.TileCache;
 import org.mapsforge.map.model.Model;
 import org.mapsforge.map.model.common.Observer;
 import org.mapsforge.map.view.InputListener;
-import org.oscim.core.BoundingBox;
 
 public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
@@ -366,33 +364,24 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
     @Override
     public void zoomToBounds(final Viewport bounds) {
-        final Viewport mapBounds = coordinateConverter.toMap(bounds);
-        zoomToBounds(new BoundingBox(mapBounds.bottomLeft.getLatitudeE6(), mapBounds.bottomLeft.getLongitudeE6(), mapBounds.topRight.getLatitudeE6(), mapBounds.topRight.getLongitudeE6()));
-    }
-
-    public void zoomToBounds(final BoundingBox bounds) {
-        if (bounds.getLatitudeSpan() == 0 && bounds.getLongitudeSpan() == 0) {
-            mMapView.setCenter(new LatLong(bounds.getCenterPoint().getLatitude(), bounds.getCenterPoint().getLongitude()));
+        final MapsforgeBounds mapBounds = new MapsforgeBounds(bounds, coordinateConverter);
+        if (!mapBounds.isPoint() && (mMapView.getWidth() == 0 || mMapView.getHeight() == 0)) {
+            // See Bug #14948: postpone until the map has a width and height.
+            // Keep the WGS84 bounds so a source change before execution uses the current converter.
+            mMapView.post(() -> zoomToBoundsDirect(new MapsforgeBounds(bounds, coordinateConverter)));
         } else {
-            // add some margin to not cut-off items at the edge
-            // Google Maps does this implicitly, so we need to add it here map-specific
-            final BoundingBox extendedBounds = bounds.extendMargin(1.1f);
-            if (mMapView.getWidth() == 0 || mMapView.getHeight() == 0) {
-                //See Bug #14948: w/o map width/height the bounds can't be calculated
-                // -> postpone animation to later on UI thread (where map width/height will be set)
-                mMapView.post(() -> zoomToBoundsDirect(extendedBounds));
-            } else {
-                zoomToBoundsDirect(extendedBounds);
-            }
+            zoomToBoundsDirect(mapBounds);
         }
     }
 
-    private void zoomToBoundsDirect(final BoundingBox bounds) {
-        setCenter(new Geopoint(bounds.getCenterPoint().getLatitude(), bounds.getCenterPoint().getLongitude()));
-        final int tileSize = mMapView.getModel().displayModel.getTileSize();
-        final byte newZoom = LatLongUtils.zoomForBounds(new Dimension(mMapView.getWidth(), mMapView.getHeight()),
-                new org.mapsforge.core.model.BoundingBox(bounds.getMinLatitude(), bounds.getMinLongitude(), bounds.getMaxLatitude(), bounds.getMaxLongitude()), tileSize);
-        setZoom(newZoom);
+    private void zoomToBoundsDirect(final MapsforgeBounds bounds) {
+        // Application state is WGS84; MapView takes map coordinates without another toMap conversion.
+        position = bounds.getWgs84Center();
+        mMapView.setCenter(bounds.getMapCenter());
+        if (!bounds.isPoint()) {
+            final int tileSize = mMapView.getModel().displayModel.getTileSize();
+            setZoom(bounds.getZoom(new Dimension(mMapView.getWidth(), mMapView.getHeight()), tileSize));
+        }
     }
 
     @Override
