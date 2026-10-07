@@ -7,8 +7,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: cgeo-cn-release-apk-${{ github.ref }}
-  cancel-in-progress: true
+  group: cgeo-cn-release-apk
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -97,6 +97,29 @@ jobs:
           grep -Eq '"versionCode": [0-9]{9}([,[:space:]]|$)' "$metadata_file"
           grep -Eq '"versionName": "[0-9]{4}\.[0-9]{2}\.[0-9]{2}"([,[:space:]]|$)' "$metadata_file"
 
+          python3 - "$metadata_file" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          metadata_path = pathlib.Path(sys.argv[1])
+          metadata = json.loads(metadata_path.read_text())
+          if metadata["applicationId"] != "cgeo.geocaching.cn" or len(metadata["elements"]) != 1:
+              raise SystemExit("Expected one CN APK")
+          version = metadata["elements"][0]
+          if type(version["versionCode"]) is not int or version["versionCode"] <= 0:
+              raise SystemExit("Invalid APK version code")
+          status = {
+              "version_code": version["versionCode"],
+              "version_name": version["versionName"],
+              "message": "New c:geo CN release available. Click to download.",
+              "message_id": "status_new_release",
+              "icon": "attribute_climbing",
+              "url": "https://nanoweb.oss-cn-beijing.aliyuncs.com/geocaching/cgeo_cn/cgeo-cn-release.apk",
+          }
+          metadata_path.with_name("status.json").write_text(json.dumps(status) + "\n")
+          PY
+
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
@@ -158,4 +181,8 @@ jobs:
           release_target="oss://nanoweb/geocaching/cgeo_cn/cgeo-cn-release.apk"
 
           ossutil -c "$config_file" cp "${apk_files[0]}" "$dated_target" --force
-          ossutil -c "$config_file" cp "${apk_files[0]}" "$release_target" --force
+          ossutil -c "$config_file" cp "${apk_files[0]}" "$release_target" --force --meta "Cache-Control:no-cache"
+          # Publish the status only after both APK uploads have succeeded.
+          ossutil -c "$config_file" cp main/build/outputs/apk/basic/release/status.json \
+            "oss://nanoweb/geocaching/cgeo_cn/status.json" --force \
+            --meta "Content-Type:application/json#Cache-Control:no-cache"

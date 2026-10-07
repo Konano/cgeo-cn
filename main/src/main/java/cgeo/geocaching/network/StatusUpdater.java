@@ -1,5 +1,6 @@
 package cgeo.geocaching.network;
 
+import cgeo.geocaching.BuildConfig;
 import cgeo.geocaching.CgeoApplication;
 import cgeo.geocaching.connector.ConnectorFactory;
 import cgeo.geocaching.connector.IConnector;
@@ -20,16 +21,21 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.apache.commons.lang3.StringUtils;
 
 public class StatusUpdater {
 
+    private static final String CN_STATUS_URL = "https://nanoweb.oss-cn-beijing.aliyuncs.com/geocaching/cgeo_cn/status.json";
+    private static final boolean CN_RELEASE = "cgeo.geocaching.cn".equals(BuildConfig.APPLICATION_ID)
+            && "release".equals(BuildConfig.BUILD_TYPE) && !BranchDetectionHelper.isFossBuild();
+
     /**
      * An observable with the successive status. Contains {@link Status#NO_STATUS} if there is no status to display.
      */
-    public static final BehaviorSubject<Status> LATEST_STATUS = BehaviorSubject.createDefault(Status.defaultStatus(null));
+    public static final BehaviorSubject<Status> LATEST_STATUS = BehaviorSubject.createDefault(CN_RELEASE ? Status.NO_STATUS : Status.defaultStatus(null));
 
     private StatusUpdater() {
         // Utility class
@@ -67,6 +73,17 @@ public class StatusUpdater {
             url = responseUrl;
         }
 
+        /** OSS serves one static file, so CN compares its published version code locally. */
+        static Status fromCnResponse(final ObjectNode response, final int installedVersionCode) {
+            final JsonNode versionCode = response.path("version_code");
+            if (installedVersionCode <= 0 || !versionCode.isIntegralNumber() || !versionCode.canConvertToInt()
+                    || versionCode.intValue() <= installedVersionCode) {
+                return NO_STATUS;
+            }
+            final Status status = new Status(response);
+            return StringUtils.isNotBlank(status.message) && StringUtils.isNotBlank(status.url) ? status : NO_STATUS;
+        }
+
         @NonNull
         static Status defaultStatus(final Status upToDate) {
             if (upToDate != null && upToDate.message != null) {
@@ -102,6 +119,13 @@ public class StatusUpdater {
     static {
         AndroidRxUtils.networkScheduler.schedulePeriodicallyDirect(() -> {
             final Application app = CgeoApplication.getInstance();
+            if (CN_RELEASE) {
+                Network.requestJSON(CN_STATUS_URL, null)
+                        .subscribe(json -> LATEST_STATUS.onNext(Status.fromCnResponse(json, Version.getVersionCode(app))), throwable -> {
+                            // Keep the existing status when the update endpoint is unavailable.
+                        });
+                return;
+            }
             final String installer = Version.getPackageInstaller(app);
             final Parameters installerParameters = StringUtils.isNotBlank(installer) ? new Parameters("installer", installer) : null;
             final Parameters gcMembershipParameters;
