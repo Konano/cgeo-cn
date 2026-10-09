@@ -191,7 +191,7 @@ public class AboutActivity extends TabbedViewPagerActivity {
             setClickListener(binding.nutshellmanual, LocalizationUtils.getPlainString(R.string.manual_link_full));
             setClickListener(binding.faq, LocalizationUtils.getPlainString(R.string.faq_link_full));
             setClickListener(binding.github, "https://github.com/Konano/cgeo-cn/issues");
-            setClickListener(binding.market, "https://nanoweb.oss-cn-beijing.aliyuncs.com/geocaching/cgeo_cn/cgeo-cn-release.apk");
+            setClickListener(binding.market, "https://cache.nan.pub/geocaching/cgeo_cn/cgeo-cn-release.apk");
         }
     }
 

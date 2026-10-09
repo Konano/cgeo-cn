@@ -115,7 +115,7 @@ jobs:
               "message": "New c:geo CN release available. Click to download.",
               "message_id": "status_new_release",
               "icon": "attribute_climbing",
-              "url": "https://nanoweb.oss-cn-beijing.aliyuncs.com/geocaching/cgeo_cn/cgeo-cn-release.apk",
+              "url": "https://cache.nan.pub/geocaching/cgeo_cn/cgeo-cn-release.apk",
           }
           metadata_path.with_name("status.json").write_text(json.dumps(status) + "\n")
           PY

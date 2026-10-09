@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class StatusUpdater {
 
-    private static final String CN_STATUS_URL = "https://nanoweb.oss-cn-beijing.aliyuncs.com/geocaching/cgeo_cn/status.json";
+    private static final String CN_STATUS_URL = "https://cache.nan.pub/geocaching/cgeo_cn/status.json";
     private static final boolean CN_RELEASE = "cgeo.geocaching.cn".equals(BuildConfig.APPLICATION_ID)
             && "release".equals(BuildConfig.BUILD_TYPE) && !BranchDetectionHelper.isFossBuild();
 

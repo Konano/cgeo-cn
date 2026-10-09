@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class StatusUpdaterTest {
 
     private static final int INSTALLED = 202610072;
-    private static final String URL = "https://nanoweb.oss-cn-beijing.aliyuncs.com/geocaching/cgeo_cn/cgeo-cn-release.apk";
+    private static final String URL = "https://cache.nan.pub/geocaching/cgeo_cn/cgeo-cn-release.apk";
 
     private static ObjectNode response(final int versionCode) {
         return new ObjectMapper().createObjectNode()
