@@ -158,7 +158,7 @@ public class SimpleItemListView extends LinearLayout {
                     }
                     binding.itemRadiobutton.setChecked(model.getSelectedItems().contains(data.value));
                     binding.itemCheckbox.setChecked(model.getSelectedItems().contains(data.value));
-                    applyHighlight(data.type == ListItemType.ITEM && model.getChoiceMode() == SimpleItemListModel.ChoiceMode.SINGLE_PLAIN
+                    applyHighlight(data.type == ListItemType.ITEM && model.getChoiceMode() == SimpleItemListModel.ChoiceMode.SINGLE_HIGHLIGHT
                         && model.getSelectedItems().contains(data.value));
                     break;
             }
@@ -482,6 +482,9 @@ public class SimpleItemListView extends LinearLayout {
 
     private boolean isGroupExpanded(final Object group) {
         if (group == null) {
+            return true;
+        }
+        if (!StringUtils.isBlank(model.getFilterTerm())) {
             return true;
         }
         return !model.getGroupingOptions().getReducedGroups().contains(group);

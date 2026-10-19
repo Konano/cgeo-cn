@@ -41,6 +41,7 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 import androidx.core.text.HtmlCompat;
 
@@ -363,7 +364,7 @@ public final class GCParser {
         cache.setOnWatchlist(TextUtils.matches(page, GCConstants.PATTERN_WATCHLIST));
 
         // latitude and longitude. Can only be retrieved if user is logged in
-        String latlon = TextUtils.getMatch(page, GCConstants.PATTERN_LATLON, true, "");
+        final String latlon = TextUtils.getMatch(page, GCConstants.PATTERN_LATLON, true, "");
         if (StringUtils.isNotEmpty(latlon)) {
             try {
                 cache.setCoords(new Geopoint(latlon));
@@ -1714,7 +1715,12 @@ public final class GCParser {
 
         // retrieve trackables
         final List<GCWebAPI.TrackableInventoryEntry> cacheInventory = GCWebAPI.getTrackablesOfCache(cache.getGeocode());
-        if (!cacheInventory.isEmpty()) {
+        updateCacheInventory(cache, cacheInventory);
+    }
+
+    @VisibleForTesting
+    static void updateCacheInventory(@NonNull final Geocache cache, @Nullable final List<GCWebAPI.TrackableInventoryEntry> cacheInventory) {
+        if (cacheInventory != null) {
             cache.mergeInventory(GCWebAPI.convertTrackableInventory(cacheInventory), EnumSet.of(TrackableBrand.TRAVELBUG));
         }
     }

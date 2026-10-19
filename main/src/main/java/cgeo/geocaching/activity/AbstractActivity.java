@@ -1,11 +1,13 @@
 package cgeo.geocaching.activity;
 
 import cgeo.geocaching.R;
+import cgeo.geocaching.enumerations.LoadFlags;
 import cgeo.geocaching.models.CalculatedCoordinate;
 import cgeo.geocaching.models.Geocache;
 import cgeo.geocaching.models.Waypoint;
 import cgeo.geocaching.service.GeocacheChangedBroadcastReceiver;
 import cgeo.geocaching.settings.Settings;
+import cgeo.geocaching.storage.DataStore;
 import cgeo.geocaching.ui.TextParam;
 import cgeo.geocaching.ui.dialog.SimpleDialog;
 import cgeo.geocaching.utils.ActionBarUtils;
@@ -42,8 +44,10 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewbinding.ViewBinding;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -303,8 +307,13 @@ public abstract class AbstractActivity extends AppCompatActivity implements IAbs
 
                 SimpleDialog.of(this).setTitle(TextParam.id(R.string.variables_scanlisting_choosepattern_title))
                         .selectMultiple(model, set -> {
-                            final int added = cache.addCalculatedWaypoints(set, LocalizationUtils.getString(R.string.calccoord_generate_waypointnameprefix));
+                            final List<Pair<String, String>> sortedSelection = patterns.stream()
+                                    .filter(set::contains)
+                                    .collect(Collectors.toList());
+
+                            final int added = cache.addCalculatedWaypoints(sortedSelection, LocalizationUtils.getString(R.string.calccoord_generate_waypointnameprefix));
                             if (added > 0) {
+                                DataStore.saveCache(cache, EnumSet.of(LoadFlags.SaveFlag.DB));
                                 GeocacheChangedBroadcastReceiver.sendBroadcast(this, cache.getGeocode());
                             }
                         });

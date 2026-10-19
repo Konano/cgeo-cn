@@ -374,7 +374,7 @@ public class GeocacheFilter implements Cloneable {
      */
     public Map<QuickFilter, Boolean> getQuickFilter() {
         final Map<QuickFilter, Boolean> result = new HashMap<>();
-        final StatusGeocacheFilter statusFilter = findInChain(getAndChainIfPossible(null), StatusGeocacheFilter.class);
+        final StatusGeocacheFilter statusFilter = findInTree(StatusGeocacheFilter.class);
         result.put(QuickFilter.FOUND, statusFilter == null || !Boolean.FALSE.equals(statusFilter.getStatusFound()));
         result.put(QuickFilter.OWNED, statusFilter == null || !Boolean.FALSE.equals(statusFilter.getStatusOwned()));
         result.put(QuickFilter.HAS_OFFLINE_FOUND_LOG, statusFilter == null || !Boolean.FALSE.equals(statusFilter.getStatusHasOfflineFoundLog()));
@@ -397,7 +397,7 @@ public class GeocacheFilter implements Cloneable {
             return;
         }
 
-        StatusGeocacheFilter statusFilter = findInChain(getAndChainIfPossible(null), StatusGeocacheFilter.class);
+        StatusGeocacheFilter statusFilter = findInTree(StatusGeocacheFilter.class);
         if (statusFilter == null) {
             statusFilter = GeocacheFilterType.STATUS.create();
             and(statusFilter);
@@ -418,6 +418,10 @@ public class GeocacheFilter implements Cloneable {
             return;
         }
         setter.call(newValue);
+    }
+
+    private <T extends IGeocacheFilter> T findInTree(final Class<T> filterClazz) {
+        return traverseFiltersInternal(tree, f -> filterClazz.isInstance(f) ? filterClazz.cast(f) : null);
     }
 
     private static boolean isAndFilter(final IGeocacheFilter filter) {

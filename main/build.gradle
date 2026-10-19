@@ -51,7 +51,7 @@ android {
         versionCode = versionCodeFromDate(0)
         buildConfigField 'String', 'GIT_COMMIT', "\"${commitIdShort}\""
         // Update this baseline when integrating a new upstream release.
-        buildConfigField 'String', 'UPSTREAM_COMMIT', '"532e1cee2"'
+        buildConfigField 'String', 'UPSTREAM_COMMIT', '"27dc7bb44"'
 
         // this is necessary to move .google_measurement_service into a app-specific namespace (see https://github.com/kotmyrevich/analytics-issues/issues/784)
         applicationId = "cgeo.geocaching"
@@ -830,9 +830,9 @@ tasks.register('checkstyle', Checkstyle) {
     group = 'verification'
     description = 'Check code standard'
 
-    source = 'src/main/java'
-    source = 'src/test/java'
-    source = 'src/androidTest/java'
+    source 'src/main/java'
+    source 'src/test/java'
+    source 'src/androidTest/java'
     include '**/*.java'
 
     classpath = files()
