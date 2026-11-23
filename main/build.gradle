@@ -51,7 +51,7 @@ android {
         versionCode = versionCodeFromDate(0)
         buildConfigField 'String', 'GIT_COMMIT', "\"${commitIdShort}\""
         // Update this baseline when integrating a new upstream release.
-        buildConfigField 'String', 'UPSTREAM_COMMIT', '"27dc7bb44"'
+        buildConfigField 'String', 'UPSTREAM_COMMIT', '"f3cc3f1c9"'
 
         // this is necessary to move .google_measurement_service into a app-specific namespace (see https://github.com/kotmyrevich/analytics-issues/issues/784)
         applicationId = "cgeo.geocaching"
@@ -376,13 +376,13 @@ dependencies {
     implementation 'com.github.moving-bits:dbinspection:v0.1.2'
 
     // Jackson XML processing
-    String jacksonVersion = '2.21.4'
+    String jacksonVersion = '2.21.8'
     implementation "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     implementation "com.fasterxml.jackson.core:jackson-annotations:2.21"
 
     // Jsoup HTML parsing
-    implementation 'org.jsoup:jsoup:1.22.2'
+    implementation 'org.jsoup:jsoup:1.23.2'
 
      // GeoJson parsing: https://github.com/cocoahero/android-geojson
     implementation 'com.cocoahero.android:geojson:1.0.1@jar'
@@ -390,10 +390,13 @@ dependencies {
     // Junit only needed for local unit tests
     testImplementation 'junit:junit:4.13.2'
 
-    // Leak Canary, memory leak detection
+    // LeakCanary, memory leak detection
     String leakCanaryVersion = '2.14'
     debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanaryVersion"
     implementation "com.squareup.leakcanary:plumber-android:$leakCanaryVersion"
+
+    // LeakCanary within AS profiler
+    debugImplementation 'com.android.tools.studio.leakcanary:leakcanary:1.1.0'
 
     // Locus Maps integration
     implementation 'com.github.asamm.locus-api:locus-api-android:0.9.72'
@@ -531,7 +534,8 @@ dependencies {
 
     // androidx Emoji Picker (full standard emoji set, used by the icon/marker selection dialog)
     implementation 'androidx.emoji2:emoji2-emojipicker:1.6.0'
-    implementation 'com.google.guava:guava:33.6.0-android' //needed by emojipicker
+    // explicit import - used by emojipicker, but only with an old version
+    implementation 'com.google.guava:guava:33.8.0-android'
 
     // Settings Library
     implementation 'androidx.preference:preference:1.2.1'

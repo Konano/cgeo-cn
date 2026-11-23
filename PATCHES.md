@@ -2,7 +2,7 @@
 
 ## 当前上游基线
 
-- 已合并 `cgeo/cgeo:release` 的上游提交 `27dc7bb44`，包含正式版 `market_20261018`（2026.10.18）及同步时 release 分支的后续提交。
+- 已合并 `cgeo/cgeo:release` 的上游提交 `f3cc3f1c9`，包含正式版 `market_20261122`（2026.11.22）及同步时 release 分支的后续提交。
 
 ## Bug 修复
 

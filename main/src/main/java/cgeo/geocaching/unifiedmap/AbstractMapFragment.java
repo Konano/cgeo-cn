@@ -162,6 +162,11 @@ public abstract class AbstractMapFragment extends Fragment {
         return false;
     }
 
+    /** tile source gets set by the map ready tasks, so this is false until the map has finished loading */
+    public boolean isMapReady() {
+        return currentTileProvider != null;
+    }
+
     // ========================================================================
     // layer handling
 
@@ -170,7 +175,10 @@ public abstract class AbstractMapFragment extends Fragment {
     }
 
     private void forEveryLayer(final Consumer<GeoItemLayer<?>> consumer) {
-        final UnifiedMapActivity activity = (UnifiedMapActivity) requireActivity();
+        final UnifiedMapActivity activity = (UnifiedMapActivity) getActivity();
+        if (!ActivityMixin.isActivityValid(activity)) {
+            return;
+        }
         for (GeoItemLayer<?> layer : activity.getLayers()) {
             consumer.accept(layer);
         }
@@ -296,7 +304,10 @@ public abstract class AbstractMapFragment extends Fragment {
      */
     protected void onTapCallback(final int latitudeE6, final int longitudeE6, final int x, final int y, final boolean isLongTap) {
         Log.d("registered " + (isLongTap ? "long " : "") + " tap on map @ (" + latitudeE6 + ", " + longitudeE6 + ")");
-        ((UnifiedMapActivity) requireActivity()).onTap(latitudeE6, longitudeE6, x, y, isLongTap);
+        final UnifiedMapActivity activity = (UnifiedMapActivity) getActivity();
+        if (ActivityMixin.isActivityValid(activity)) {
+            activity.onTap(latitudeE6, longitudeE6, x, y, isLongTap);
+        }
     }
 
 }

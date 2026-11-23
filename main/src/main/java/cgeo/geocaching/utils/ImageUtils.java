@@ -24,7 +24,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.Typeface;
@@ -92,6 +91,8 @@ public final class ImageUtils {
 
     private static final String OFFLINE_LOG_IMAGE_PREFIX = "cgeo-image-";
 
+    public static final int MAX_IMG_DIMEN = 10000;
+
     // Images whose URL contains one of those patterns will not be available on the Images tab
     // for opening into an external application.
     private static final String[] NO_EXTERNAL = {"geocheck.org"};
@@ -104,13 +105,33 @@ public final class ImageUtils {
     public static class ImageFolderCategoryHandler implements ImageGalleryView.EditableCategoryHandler {
 
         private final Folder folder;
+        private Collection<Image> preloadedImages;
 
+        /** Note: constructing may access storage (folder resolution), so avoid calling this on UI thread */
         public ImageFolderCategoryHandler(final String geocode) {
             folder = getSpoilerImageFolder(geocode);
         }
 
+        /**
+         * Reads the images of this category from storage and caches them for the next call to {@link #getAllImages()}.
+         * Intended to be called on a background thread, so that initializing the gallery on UI thread does not need storage access.
+         */
+        public ImageFolderCategoryHandler preloadImages() {
+            preloadedImages = readAllImages();
+            return this;
+        }
+
         @Override
         public Collection<Image> getAllImages() {
+            final Collection<Image> preloaded = preloadedImages;
+            if (preloaded != null) {
+                preloadedImages = null;
+                return preloaded;
+            }
+            return readAllImages();
+        }
+
+        private Collection<Image> readAllImages() {
             return CollectionStream.of(ContentStorage.get().list(folder))
                     .map(fi -> new Image.Builder().setUrl(fi.uri)
                             .setTitle(getTitleFromName(fi.name))
@@ -193,12 +214,9 @@ public final class ImageUtils {
         //special case: 1x1 images used for layouting
         final boolean isOneToOne = image.getHeight() == 1 && image.getWidth() == 1;
 
-        final Point displaySize = DisplayUtils.getDisplaySize();
-        final int maxWidth = displaySize.x - 25;
-        final int maxHeight = displaySize.y - 25;
         final int minWidth = isOneToOne ? 1 : ViewUtils.spToPixel(20);
         final int minHeight = isOneToOne ? 1 : ViewUtils.spToPixel(20);
-        return scaleBitmapTo(image, maxWidth, maxHeight, minWidth, minHeight);
+        return scaleBitmapTo(image, MAX_IMG_DIMEN, MAX_IMG_DIMEN, minWidth, minHeight);
     }
 
     /**
@@ -885,11 +903,19 @@ public final class ImageUtils {
     }
 
     public static void initializeImageGallery(final ImageGalleryView imageGallery, final String geocode, final Collection<Image> images, final boolean showOwnCategory) {
+        initializeImageGallery(imageGallery, geocode, images, geocode != null && showOwnCategory ? new ImageFolderCategoryHandler(geocode) : null);
+    }
+
+    /**
+     * initializes an image gallery. If an ownCategoryHandler is given, then an editable "own" category is created using this handler.
+     * Pass a handler with preloaded images (see {@link ImageFolderCategoryHandler#preloadImages()}) to avoid storage access on UI thread.
+     */
+    public static void initializeImageGallery(final ImageGalleryView imageGallery, final String geocode, final Collection<Image> images, @Nullable final ImageFolderCategoryHandler ownCategoryHandler) {
         imageGallery.clear();
         imageGallery.setup(geocode);
         imageGallery.registerCallerActivity();
-        if (geocode != null && showOwnCategory) {
-            imageGallery.setEditableCategory(Image.ImageCategory.OWN.getI18n(), new ImageFolderCategoryHandler(geocode));
+        if (ownCategoryHandler != null) {
+            imageGallery.setEditableCategory(Image.ImageCategory.OWN.getI18n(), ownCategoryHandler);
         }
         if (images != null) {
             //pre-create all contained categories to be in control of their sort order

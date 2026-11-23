@@ -148,10 +148,17 @@ public abstract class AbstractActivity extends AppCompatActivity implements IAbs
     protected void attachBaseContext(final Context newBase) {
         // Apply user-selected locale to activity context
         final Locale locale = Settings.getApplicationLocale();
-        final Configuration configuration = new Configuration(newBase.getResources().getConfiguration());
-        configuration.setLocale(locale);
-        final Context localeContext = newBase.createConfigurationContext(configuration);
-        super.attachBaseContext(localeContext);
+        // Android sets the default locale back to the system's when an activity starts,
+        // restore it for Java-side formatting (e.g. dates), see CgeoApplication.initApplicationLocale()
+        Locale.setDefault(locale);
+        super.attachBaseContext(newBase);
+        // Apply user-selected locale as override configuration instead of wrapping the base context
+        // with createConfigurationContext(): the latter detaches the activity's Resources from the
+        // activity-tracked resources of ResourcesManager, which can lead to stale AssetManagers and
+        // Resources$NotFoundException ("File res/xx.xml from xml type layout resource ID ...", see #18916)
+        final Configuration override = new Configuration();
+        override.setLocale(Settings.getApplicationLocale());
+        applyOverrideConfiguration(override);
     }
 
     @Override

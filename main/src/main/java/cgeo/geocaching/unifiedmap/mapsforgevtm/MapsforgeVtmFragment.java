@@ -204,14 +204,21 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
 
     @Override
     public void onPause() {
-        mMapView.onPause();
+        if (mMapView != null) {
+            mMapView.onPause();
+        }
         super.onPause();
     }
 
     @Override
     public void onDestroyView() {
         mapEventsReceiver = null;
-        mMapView.onDestroy();
+        if (mMapView != null) {
+            mMapView.onDestroy();
+            mMapView = null;
+        }
+        mMap = null;
+        mMapLayers = null;
         themeHelper.disposeTheme();
         super.onDestroyView();
     }
@@ -233,7 +240,9 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
             for (Layer layer : layers) {
                 layer.setEnabled(false);
                 try {
-                    mMapLayers.remove(layer);
+                    if (mMapLayers != null) {
+                        mMapLayers.remove(layer);
+                    }
                 } catch (IndexOutOfBoundsException ignore) {
                     // ignored
                 }
@@ -244,7 +253,9 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
             }
             layers.clear();
         }
-        mMap.clearMap();
+        if (mMap != null) {
+            mMap.clearMap();
+        }
         super.prepareForTileSourceChange();
     }
 
@@ -252,7 +263,7 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
     public boolean setTileSource(final AbstractTileProvider newSource, final boolean force) {
         coordinateConverter = newSource.getCoordinateConverter();
         final boolean needsUpdate = super.setTileSource(newSource, force);
-        if (needsUpdate) {
+        if (needsUpdate && mMap != null) {
             if (position != null) {
                 setCenter(position);
             }
@@ -268,7 +279,7 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
 
     @Override
     public IProviderGeoItemLayer<?> createGeoItemProviderLayer() {
-        return new MapsforgeVtmGeoItemLayer(mMap, mMapLayers, coordinateConverter);
+        return (mMap != null && mMapLayers != null) ? new MapsforgeVtmGeoItemLayer(mMap, mMapLayers, coordinateConverter) : null;
     }
 
     /**
@@ -277,6 +288,9 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
     public synchronized TileLayer setBaseMap(final TileSource tileSource) {
         removeBaseMap();
 
+        if (mMap == null) {
+            return null;
+        }
         final VectorTileLayer l = new OsmTileLayer(mMap);
         l.setTileSource(tileSource);
         addLayerToGroup(l, LayerHelper.ZINDEX_BASEMAP);
@@ -285,7 +299,7 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
     }
 
     private void removeBaseMap() {
-        if (baseMap != null) {
+        if (baseMap != null && mMapLayers != null) {
             mMapLayers.removeGroup(LayerHelper.ZINDEX_BASEMAP);
         }
         baseMap = null;
@@ -296,11 +310,15 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
      */
     public synchronized void addLayer(final int index, final Layer layer) {
         layers.add(layer);
-        mMapLayers.addToGroup(layer, index);
+        if (mMapLayers != null) {
+            mMapLayers.addToGroup(layer, index);
+        }
     }
 
     public synchronized void addLayerToGroup(final Layer layer, final int groupIndex) {
-        mMapLayers.addToGroup(layer, groupIndex);
+        if (mMapLayers != null) {
+            mMapLayers.addToGroup(layer, groupIndex);
+        }
     }
 
 
@@ -309,7 +327,10 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
 
     @Override
     public void setCenter(final Geopoint geopoint) {
-        position = geopoint;
+        this.position = geopoint;
+        if (mMap == null) {
+            return;
+        }
         final Geopoint mapPoint = coordinateConverter.toMap(geopoint);
         final MapPosition pos = mMap.getMapPosition();
         pos.setPosition(mapPoint.getLatitude(), mapPoint.getLongitude());
@@ -318,6 +339,9 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
 
     @Override
     public Geopoint getCenter() {
+        if (mMap == null) {
+            return position != null ? position : new Geopoint(0.0d, 0.0d);
+        }
         final MapPosition pos = mMap.getMapPosition();
         return coordinateConverter.fromMap(new Geopoint(pos.getLatitude(), pos.getLongitude()));
     }
@@ -334,6 +358,9 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
 
     @Override
     public void setDrivingMode(final boolean enabled) {
+        if (mMap == null) {
+            return;
+        }
         mMap.viewport().setMapViewCenter(0f, enabled ? 0.5f : 0f);
     }
 
@@ -348,6 +375,9 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
     }
 
     public void zoomToBounds(final BoundingBox bounds) {
+        if (mMap == null) {
+            return;
+        }
         if (bounds.getLatitudeSpan() == 0 && bounds.getLongitudeSpan() == 0) {
             mMap.animator().animateTo(new GeoPoint(bounds.getMaxLatitude(), bounds.getMaxLongitude()));
         } else {
@@ -365,6 +395,9 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
     }
 
     private void zoomToBoundsDirect(final BoundingBox bounds) {
+        if (mMap == null || mMapView == null) {
+            return;
+        }
         final MapPosition mp = mMap.getMapPosition();
         mp.setByBoundingBox(bounds, mMapView.getWidth(), mMapView.getHeight());
         mMap.setMapPosition(mp);
@@ -372,33 +405,49 @@ public class MapsforgeVtmFragment extends AbstractMapFragment {
 
     @Override
     public int getCurrentZoom() {
+        if (mMap == null) {
+            return zoomLevel;
+        }
         return mMap.getMapPosition().getZoomLevel();
     }
 
     @Override
     public void setZoom(final int zoomLevel) {
-        final MapPosition pos = mMap.getMapPosition();
-        pos.setZoomLevel(zoomLevel);
-        mMap.setMapPosition(pos);
+        this.zoomLevel = zoomLevel;
+        if (mMap != null) {
+            final MapPosition pos = mMap.getMapPosition();
+            pos.setZoomLevel(zoomLevel);
+            mMap.setMapPosition(pos);
+        }
     }
 
     public void zoomInOut(final boolean zoomIn) {
-        mMap.animator().animateZoom(300, zoomIn ? 2 : 0.5, 0f, 0f);
+        if (mMap != null) {
+            mMap.animator().animateZoom(300, zoomIn ? 2 : 0.5, 0f, 0f);
+        }
     }
 
     @Override
     public void setMapRotation(final int mapRotation) {
         super.setMapRotation(mapRotation);
-        mMap.getEventLayer().enableRotation(mapRotation == Settings.MAPROTATION_MANUAL);
+        if (mMap != null) {
+            mMap.getEventLayer().enableRotation(mapRotation == Settings.MAPROTATION_MANUAL);
+        }
     }
 
     @Override
     public float getCurrentBearing() {
+        if (mMap == null) {
+            return 0f;
+        }
         return AngleUtils.normalize(360 - mMap.getMapPosition().bearing); // VTM uses opposite way of calculating bearing compared to GM
     }
 
     @Override
     public void setBearing(final float bearing) {
+        if (mMap == null) {
+            return;
+        }
         final float adjustedBearing = AngleUtils.normalize(360 - bearing); // VTM uses opposite way of calculating bearing compared to GM
         final MapPosition pos = mMap.getMapPosition();
         pos.setBearing(adjustedBearing);

@@ -46,7 +46,6 @@ import org.mapsforge.core.util.MercatorProjection;
 import org.mapsforge.core.util.Parameters;
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.android.mbtiles.TileMBTilesLayer;
-import org.mapsforge.map.android.util.AndroidUtil;
 import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.map.layer.Layer;
 import org.mapsforge.map.layer.cache.TileCache;
@@ -85,7 +84,8 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
         // create tile cache (taking driving mode into account when calculating tile cache size)
         setDrivingMode(true);
-        tileCache = AndroidUtil.createTileCache(requireContext(), "mapcache", mMapView.getModel().displayModel.getTileSize(), 2f, mMapView.getModel().frameBufferModel.getOverdrawFactor());
+        // use own tile cache implementation to avoid blocking UI thread when purging (e.g. on destroy)
+        tileCache = BackgroundPurgingFileSystemTileCache.createTileCache(requireContext(), "mapcache", mMapView.getModel().displayModel.getTileSize(), 2f, mMapView.getModel().frameBufferModel.getOverdrawFactor());
         setDrivingMode(false);
 
         themeHelper = new MapsforgeThemeHelper(requireActivity());
@@ -121,6 +121,9 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
     }
 
     private void startMap() {
+        if (mMapView == null) {
+            return;
+        }
         mMapView.getMapScaleBar().setVisible(true);
         mMapView.getMapScaleBar().setDistanceUnitAdapter(mMapView.getMapScaleBar().getDistanceUnitAdapter());
         mMapView.setBuiltInZoomControls(false);
@@ -180,7 +183,7 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
             applyTheme(); // @todo: There must be a less resource-intensive way of applying style-changes...
             doReapplyTheme = false;
         }
-        if (mapEventsReceiver == null) {
+        if (mapEventsReceiver == null && mMapView != null) {
             mapEventsReceiver = new MapEventsReceiver();
             mMapView.getLayerManager().getLayers().add(mapEventsReceiver);
         }
@@ -190,28 +193,34 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
     public void onResume() {
         super.onResume();
         // mMapView.onResume();
-        mMapView.getModel().mapViewPosition.addObserver(this);
-        if (currentTileProvider instanceof AbstractMapsforgeOnlineTileProvider) {
-            ((AbstractMapsforgeOnlineTileProvider) currentTileProvider).addTileLayer(this, mMapView);
+        if (mMapView != null) {
+            mMapView.getModel().mapViewPosition.addObserver(this);
+            if (currentTileProvider instanceof AbstractMapsforgeOnlineTileProvider) {
+                ((AbstractMapsforgeOnlineTileProvider) currentTileProvider).addTileLayer(this, mMapView);
+            }
         }
     }
 
     @Override
     public void onPause() {
         // mMapView.onPause();
-        if (currentTileProvider instanceof AbstractMapsforgeOnlineTileProvider) {
-            ((AbstractMapsforgeOnlineTileProvider) currentTileProvider).removeTileLayer(mMapView);
+        if (mMapView != null) {
+            if (currentTileProvider instanceof AbstractMapsforgeOnlineTileProvider) {
+                ((AbstractMapsforgeOnlineTileProvider) currentTileProvider).removeTileLayer(mMapView);
+            }
+            mMapView.getModel().mapViewPosition.removeObserver(this);
         }
         super.onPause();
-
-        mMapView.getModel().mapViewPosition.removeObserver(this);
     }
 
     @Override
     public void onDestroyView() {
 //        themeHelper.disposeTheme();
         mapEventsReceiver = null;
-        mMapView.destroyAll();
+        if (mMapView != null) {
+            mMapView.destroyAll();
+            mMapView = null;
+        }
         super.onDestroyView();
     }
 
@@ -230,7 +239,7 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
     @Override
     public void prepareForTileSourceChange() {
-        if (currentTileProvider != null) {
+        if (currentTileProvider != null && mMapView != null) {
             ((AbstractMapsforgeTileProvider) currentTileProvider).prepareForTileSourceChange(mMapView);
         }
         super.prepareForTileSourceChange();
@@ -240,7 +249,7 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
     public boolean setTileSource(final AbstractTileProvider newSource, final boolean force) {
         coordinateConverter = newSource.getCoordinateConverter();
         final boolean needsUpdate = super.setTileSource(newSource, force);
-        if (needsUpdate) {
+        if (needsUpdate && mMapView != null) {
             if (position != null) {
                 setCenter(position);
             }
@@ -256,7 +265,7 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
     @Override
     public IProviderGeoItemLayer<?> createGeoItemProviderLayer() {
-        return new MapsforgeV6GeoItemLayer(mMapView, coordinateConverter);
+        return mMapView != null ? new MapsforgeV6GeoItemLayer(mMapView, coordinateConverter) : null;
     }
 
 
@@ -265,7 +274,10 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
     @Override
     public void setCenter(final Geopoint geopoint) {
-        position = geopoint;
+        this.position = geopoint;
+        if (mMapView == null) {
+            return;
+        }
         final Geopoint mapPoint = coordinateConverter.toMap(geopoint);
         try {
             mMapView.setCenter(new LatLong(mapPoint.getLatitude(), mapPoint.getLongitude()));
@@ -278,6 +290,9 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
     @Override
     public Geopoint getCenter() {
+        if (mMapView == null) {
+            return position != null ? position : new Geopoint(0.0d, 0.0d);
+        }
         final LatLong pos = mMapView.getModel().mapViewPosition.getMapPosition().latLong;
         return coordinateConverter.fromMap(new Geopoint(pos.getLatitude(), pos.getLongitude()));
     }
@@ -296,6 +311,9 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
     }
 
     private double getLatitudeSpan() {
+        if (mMapView == null) {
+            return 0;
+        }
         double span = 0;
         final long mapSize = MercatorProjection.getMapSize(mMapView.getModel().mapViewPosition.getZoomLevel(), mMapView.getModel().displayModel.getTileSize());
         final Point center = MercatorProjection.getPixelAbsolute(mMapView.getModel().mapViewPosition.getCenter(), mapSize);
@@ -314,6 +332,9 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
     }
 
     private double getLongitudeSpan() {
+        if (mMapView == null) {
+            return 0;
+        }
         double span = 0;
         final long mapSize = MercatorProjection.getMapSize(mMapView.getModel().mapViewPosition.getZoomLevel(), mMapView.getModel().displayModel.getTileSize());
         final Point center = MercatorProjection.getPixelAbsolute(mMapView.getModel().mapViewPosition.getCenter(), mapSize);
@@ -354,6 +375,9 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
     @Override
     public void setDrivingMode(final boolean enabled) {
+        if (mMapView == null) {
+            return;
+        }
         mMapView.setMapViewCenterY(enabled ? 0.75f : 0.5f);
         mMapView.getModel().frameBufferModel.setOverdrawFactor(Math.max(mMapView.getModel().frameBufferModel.getOverdrawFactor(), mMapView.getMapViewCenterY() * 2));
     }
@@ -364,6 +388,9 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
     @Override
     public void zoomToBounds(final Viewport bounds) {
+        if (mMapView == null) {
+            return;
+        }
         final MapsforgeBounds mapBounds = new MapsforgeBounds(bounds, coordinateConverter);
         if (!mapBounds.isPoint() && (mMapView.getWidth() == 0 || mMapView.getHeight() == 0)) {
             // See Bug #14948: postpone until the map has a width and height.
@@ -375,6 +402,9 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
     }
 
     private void zoomToBoundsDirect(final MapsforgeBounds bounds) {
+        if (mMapView == null) {
+            return;
+        }
         // Application state is WGS84; MapView takes map coordinates without another toMap conversion.
         position = bounds.getWgs84Center();
         mMapView.setCenter(bounds.getMapCenter());
@@ -386,16 +416,25 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
     @Override
     public int getCurrentZoom() {
+        if (mMapView == null) {
+            return zoomLevel;
+        }
         return mMapView.getModel().mapViewPosition.getZoomLevel();
     }
 
     @Override
     public void setZoom(final int zoomLevel) {
-        mMapView.setZoomLevel((byte) Math.max(Math.min(zoomLevel, getZoomMax()), getZoomMin()));
+        this.zoomLevel = zoomLevel;
+        if (mMapView != null) {
+            mMapView.setZoomLevel((byte) Math.max(Math.min(zoomLevel, getZoomMax()), getZoomMin()));
+        }
     }
 
     @Override
     public void zoomInOut(final boolean zoomIn) {
+        if (mMapView == null) {
+            return;
+        }
         if (zoomIn) {
             mMapView.getModel().mapViewPosition.zoomIn();
         } else {
@@ -406,16 +445,24 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
     @Override
     public void setMapRotation(final int mapRotation) {
         super.setMapRotation(mapRotation);
-        mMapView.getTouchGestureHandler().setRotationEnabled(mapRotation == Settings.MAPROTATION_MANUAL);
+        if (mMapView != null) {
+            mMapView.getTouchGestureHandler().setRotationEnabled(mapRotation == Settings.MAPROTATION_MANUAL);
+        }
     }
 
     @Override
     public float getCurrentBearing() {
+        if (mMapView == null) {
+            return 0.0f;
+        }
         return AngleUtils.normalize(360 - mMapView.getMapRotation().degrees); // Mapsforge uses opposite way of calculating bearing compared to GM
     }
 
     @Override
     public void setBearing(final float bearing) {
+        if (mMapView == null) {
+            return;
+        }
         final float adjustedBearing = AngleUtils.normalize(360 - bearing); // Mapsforge uses opposite way of calculating bearing compared to GM
         mMapView.rotate(new Rotation(adjustedBearing, mMapView.getWidth() * 0.5f, mMapView.getHeight() * 0.5f));
         mMapView.getLayerManager().redrawLayers();
@@ -459,6 +506,9 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
         @Override
         public boolean onLongPress(final LatLong tapLatLong, final Point layerXY, final Point tapXY) {
+            if (mMapView == null) {
+                return false;
+            }
             final int[] location = new int[2];
             mMapView.getLocationOnScreen(location);
             final Geopoint wgs84 = coordinateConverter.fromMap(new Geopoint(tapLatLong.getLatitude(), tapLatLong.getLongitude()));
@@ -468,6 +518,9 @@ public class MapsforgeFragment extends AbstractMapFragment implements Observer {
 
         @Override
         public boolean onTap(final LatLong tapLatLong, final Point layerXY, final Point tapXY) {
+            if (mMapView == null) {
+                return false;
+            }
             final int[] location = new int[2];
             mMapView.getLocationOnScreen(location);
             final Geopoint wgs84 = coordinateConverter.fromMap(new Geopoint(tapLatLong.getLatitude(), tapLatLong.getLongitude()));
